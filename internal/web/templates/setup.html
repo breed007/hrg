@@ -1,0 +1,53 @@
+{{define "content"}}
+<h1>Welcome to HRG</h1>
+<p class="dim">Let's get your homelab's "hit by a bus" document started. The whole point is a runbook that works when the network is down — readable by a spouse, a friend, or future-you. Five quick steps.</p>
+{{if .Err}}<p class="form-error">{{.Err}}</p>{{end}}
+
+<ol class="wizard">
+  <li>
+    <h3>1 · Name it &amp; choose where exports go</h3>
+    <form method="post" action="/runbook/settings" class="stack">
+      <label>Runbook title <input name="title" value="{{.Cfg.Title}}"></label>
+      <label>Export directory <input name="export_dir" value="{{.Cfg.ExportDir}}"></label>
+      <input type="hidden" name="schedule" value="{{.Cfg.Schedule}}">
+      <div class="form-actions"><button type="submit">Save</button></div>
+    </form>
+  </li>
+
+  <li>
+    <h3>2 · Set an access password {{if .AuthOn}}<span class="badge badge-ok">done</span>{{end}}</h3>
+    <p class="dim">HRG ships with no authentication. If it's reachable beyond this machine, protect it.</p>
+    <form method="post" action="/auth/password" class="stack">
+      <input type="hidden" name="back" value="/setup">
+      {{if .AuthOn}}<label>Current password <input name="current_password" type="password"></label>{{end}}
+      <label>Password <small>(8+ chars; optional but recommended)</small>
+        <input name="new_password" type="password" autocomplete="new-password"></label>
+      <div class="form-actions"><button type="submit">Set password</button></div>
+    </form>
+  </li>
+
+  <li>
+    <h3>3 · Add a collector {{if .CollectorCount}}<span class="badge badge-ok">{{.CollectorCount}} configured</span>{{end}}</h3>
+    <p class="dim">Point HRG at your infrastructure (read-only). Or skip and describe things by hand in <code>resources.d/</code>.</p>
+    <p class="add-row">{{range .Types}}<a class="btn" href="/collectors/new?type={{.}}">{{.}}</a>{{end}}</p>
+  </li>
+
+  <li>
+    <h3>4 · Write the START HERE page {{if .StartHereWritten}}<span class="badge badge-ok">done</span>{{end}}</h3>
+    <p class="dim">The most important page: plain-language triage for when the internet is down or something is beeping. Only you can write it — HRG pre-fills a skeleton.</p>
+    <p class="add-row"><a class="btn" href="/runbook?edit=start_here#page-start_here">Write START HERE</a></p>
+  </li>
+
+  <li>
+    <h3>5 · Generate your first runbook {{if .HasExport}}<span class="badge badge-ok">done</span>{{end}}</h3>
+    <p class="dim">Produce the self-contained artifact so a copy exists outside this app.</p>
+    <p class="add-row">
+      <a class="btn" href="/runbook">Go to Runbook</a>
+    </p>
+  </li>
+</ol>
+
+<form method="post" action="/setup/dismiss" class="inline">
+  <button type="submit">Finish setup &amp; go to dashboard</button>
+</form>
+{{end}}

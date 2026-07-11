@@ -1,0 +1,10 @@
+{
+  "count": 3,
+  "next": null,
+  "previous": null,
+  "results": [
+    {"id": 11, "address": "10.0.10.5/24", "dns_name": "nas.lan", "description": "Synology NAS", "status": {"value": "active"}},
+    {"id": 12, "address": "10.0.10.10/24", "dns_name": "pve1.lan", "description": "Proxmox node", "status": {"value": "active"}},
+    {"id": 13, "address": "10.0.1.1/24", "dns_name": "gateway.lan", "description": "UDM Pro", "status": {"value": "active"}}
+  ]
+}

@@ -1,0 +1,7 @@
+resources:
+  - id: plex
+    kind: service
+    name: Plex
+    edges:
+      - relation: depends_on
+        to: nas-that-does-not-exist

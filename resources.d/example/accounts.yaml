@@ -1,0 +1,21 @@
+resources:
+  - id: isp-account
+    kind: account
+    name: ISP account
+    attrs:
+      provider: Example ISP
+      support_phone: 1-800-555-0100
+      # Never put credentials here — point at where they live instead.
+      credentials: 1Password vault "Home", item "ISP"
+    edges:
+      - relation: depends_on
+        to: modem
+
+  # Cross-collector edges reference resources other collectors will
+  # discover. They stay pending until that collector reports the target.
+  #  - id: dns-registrar
+  #    kind: account
+  #    name: Domain registrar
+  #    edges:
+  #      - relation: resolves_to
+  #        to: { collector: "unifi:home", id: "network/wan" }

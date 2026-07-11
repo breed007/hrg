@@ -1,0 +1,37 @@
+{{define "content"}}
+<h1>Collectors</h1>
+
+<p class="add-row">Add a collector:
+  {{range .Types}}<a class="btn" href="/collectors/new?type={{.}}">{{.}}</a>{{end}}
+</p>
+
+<table>
+  <thead><tr><th>Instance</th><th>Type</th><th>Endpoint</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+    <tr>
+      <td>manual</td>
+      <td>manual</td>
+      <td><code>{{.ResourcesDir}}</code></td>
+      <td><span class="badge badge-ok">built-in</span></td>
+      <td></td>
+    </tr>
+  {{range .Configs}}
+    <tr>
+      <td>{{.Instance}}</td>
+      <td>{{.Type}}</td>
+      <td><code>{{.Endpoint}}</code></td>
+      <td>{{if .Enabled}}<span class="badge badge-ok">enabled</span>{{else}}<span class="badge">disabled</span>{{end}}</td>
+      <td class="actions">
+        <a href="/collectors/{{.ID}}/edit">Edit</a>
+        <form method="post" action="/collectors/{{.ID}}/delete" class="inline"
+              onsubmit="return confirm('Delete {{.Instance}}? Its resources stay in the inventory but will no longer update.')">
+          <button type="submit" class="btn-danger">Delete</button>
+        </form>
+      </td>
+    </tr>
+  {{end}}
+  </tbody>
+</table>
+
+<p class="dim">Collector tokens are encrypted at rest with the key file next to the database. HRG only ever reads from your infrastructure — create read-only API tokens (Proxmox: <code>PVEAuditor</code> on <code>/</code>).</p>
+{{end}}

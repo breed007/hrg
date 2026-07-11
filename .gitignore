@@ -1,0 +1,15 @@
+# The built binary (anchored to repo root so it does NOT match cmd/hrg/).
+/hrg
+hrg.db
+hrg.db-shm
+hrg.db-wal
+hrg.key
+
+# Generated runbook artifacts (default export dir) — a map of your network.
+/exports/
+
+# GoReleaser output.
+/dist/
+
+# Local editor/tooling config — not for the public repo.
+.claude/

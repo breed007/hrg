@@ -1,0 +1,9 @@
+{
+  "meta": {"rc": "ok"},
+  "data": [
+    {"_id": "60a1b2c3d4e5f60001aaaa01", "name": "WAN", "purpose": "wan", "wan_type": "dhcp"},
+    {"_id": "60a1b2c3d4e5f60001aaaa02", "name": "Servers", "purpose": "corporate", "vlan_enabled": true, "vlan": 10, "ip_subnet": "10.0.10.1/24", "dhcpd_enabled": true, "dhcpd_start": "10.0.10.100", "dhcpd_stop": "10.0.10.254", "domain_name": "lan"},
+    {"_id": "60a1b2c3d4e5f60001aaaa03", "name": "IoT", "purpose": "corporate", "vlan_enabled": true, "vlan": 20, "ip_subnet": "10.0.20.1/24", "dhcpd_enabled": false},
+    {"_id": "60a1b2c3d4e5f60001aaaa04", "name": "Management", "purpose": "corporate", "vlan_enabled": false, "ip_subnet": "10.0.1.1/24", "dhcpd_enabled": true, "dhcpd_start": "10.0.1.50", "dhcpd_stop": "10.0.1.99"}
+  ]
+}

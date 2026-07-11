@@ -1,0 +1,28 @@
+# HRG — the canonical install.
+#
+#   docker compose up -d
+#   → http://127.0.0.1:8080
+#
+# The published port is bound to 127.0.0.1 on purpose: the web UI has no auth
+# of its own, and an export is a map of your network. Put a reverse proxy with
+# authentication in front before exposing it beyond localhost.
+
+services:
+  hrg:
+    build: .
+    # Or pull a released image instead of building:
+    # image: ghcr.io/breed007/hrg:latest
+    container_name: hrg
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      # Persistent state: SQLite DB, the token-encryption key, and exports
+      # (exports land in /data/exports by default — set the export directory
+      # to /data/exports in the Runbook settings).
+      - hrg-data:/data
+      # Your manual facts. Read-only: HRG never writes here.
+      - ./resources.d:/resources.d:ro
+
+volumes:
+  hrg-data:

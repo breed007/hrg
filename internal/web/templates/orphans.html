@@ -1,0 +1,35 @@
+{{define "content"}}
+<h1>Orphan review queue</h1>
+
+{{if .Orphans}}
+<p class="dim">These resources vanished from their collector's latest run. Their history and notes are preserved until you decide: <strong>reattach</strong> moves annotations and manual relationships to a successor (a renamed container, a rebuilt VM), <strong>forget</strong> deletes the record permanently.</p>
+
+<table>
+  <thead><tr><th>Resource</th><th>Identity</th><th>Last seen</th><th>Notes</th><th>Actions</th></tr></thead>
+  <tbody>
+  {{range .Orphans}}
+    <tr>
+      <td><a href="/resources/{{.ID}}">{{.Name}}</a> <span class="kind">{{.Kind}}</span></td>
+      <td><code>{{.Collector}} / {{.SourceID}}</code></td>
+      <td>{{.LastSeenAt}}</td>
+      <td>{{if .Annotations}}<span class="badge badge-warn">{{.Annotations}} annotation{{if gt .Annotations 1}}s{{end}}</span>{{else}}<span class="dim">none</span>{{end}}</td>
+      <td class="actions">
+        <form method="post" action="/orphans/{{.ID}}/reattach" class="inline reattach-form">
+          <select name="target">
+            {{range $.Targets}}<option value="{{.ID}}">{{.Name}} ({{.Collector}} · {{.Kind}})</option>{{end}}
+          </select>
+          <button type="submit">Reattach to</button>
+        </form>
+        <form method="post" action="/orphans/{{.ID}}/forget" class="inline"
+              onsubmit="return confirm('Permanently delete {{.Name}} and its history{{if .Annotations}} INCLUDING {{.Annotations}} annotation(s){{end}}?')">
+          <button type="submit" class="btn-danger">Forget</button>
+        </form>
+      </td>
+    </tr>
+  {{end}}
+  </tbody>
+</table>
+{{else}}
+<p class="empty">No orphans — everything ever collected is still present, or has been reviewed. This queue fills when a resource disappears from its collector.</p>
+{{end}}
+{{end}}

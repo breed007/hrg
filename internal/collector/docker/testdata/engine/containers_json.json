@@ -1,0 +1,49 @@
+[
+  {
+    "Id": "8f1c2a9b0d3e4f5a6b7c8d9e0f1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c",
+    "Names": ["/media-plex-1"],
+    "Image": "plexinc/pms-docker:latest",
+    "State": "running",
+    "Status": "Up 3 days",
+    "Labels": {
+      "com.docker.compose.project": "media",
+      "com.docker.compose.service": "plex"
+    },
+    "Ports": [
+      {"IP": "0.0.0.0", "PrivatePort": 32400, "PublicPort": 32400, "Type": "tcp"},
+      {"IP": "::", "PrivatePort": 32400, "PublicPort": 32400, "Type": "tcp"}
+    ],
+    "Mounts": [
+      {"Type": "volume", "Name": "plex-config", "Destination": "/config"},
+      {"Type": "bind", "Name": "", "Destination": "/media"}
+    ],
+    "NetworkSettings": {"Networks": {"media_default": {}}}
+  },
+  {
+    "Id": "1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809",
+    "Names": ["/media-sonarr-1"],
+    "Image": "linuxserver/sonarr:latest",
+    "State": "running",
+    "Status": "Up 3 days",
+    "Labels": {
+      "com.docker.compose.project": "media",
+      "com.docker.compose.service": "sonarr"
+    },
+    "Ports": [
+      {"IP": "0.0.0.0", "PrivatePort": 8989, "PublicPort": 8989, "Type": "tcp"}
+    ],
+    "Mounts": [],
+    "NetworkSettings": {"Networks": {"media_default": {}}}
+  },
+  {
+    "Id": "d4c3b2a1908f7e6d5c4b3a2918070605040302010f0e0d0c0b0a090807060504",
+    "Names": ["/scratch-redis"],
+    "Image": "redis:7",
+    "State": "exited",
+    "Status": "Exited (0) 2 weeks ago",
+    "Labels": {},
+    "Ports": [],
+    "Mounts": [],
+    "NetworkSettings": {"Networks": {"bridge": {}}}
+  }
+]

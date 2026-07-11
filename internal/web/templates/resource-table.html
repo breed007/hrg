@@ -1,0 +1,20 @@
+{{define "resource-table"}}
+{{if .}}
+<table>
+  <thead><tr><th>Name</th><th>Kind</th><th>Collector</th><th>Source ID</th><th></th></tr></thead>
+  <tbody>
+  {{range .}}
+    <tr>
+      <td><a href="/resources/{{.ID}}">{{.Name}}</a></td>
+      <td><span class="kind">{{.Kind}}</span></td>
+      <td>{{.Collector}}</td>
+      <td><code>{{.SourceID}}</code></td>
+      <td>{{if .Orphaned}}<span class="badge badge-warn">orphaned</span>{{end}}</td>
+    </tr>
+  {{end}}
+  </tbody>
+</table>
+{{else}}
+<p class="empty">No resources match.</p>
+{{end}}
+{{end}}

@@ -1,0 +1,31 @@
+{{define "annotation-block"}}
+<div class="ann" id="ann-{{.Key}}">
+  <div class="ann-head">
+    <h3>{{.Label}}</h3>
+    {{if not .Editing}}
+    <a class="ann-edit" href="/resources/{{.ResourceID}}?edit={{.Key}}#ann-{{.Key}}"
+       hx-get="/resources/{{.ResourceID}}?edit={{.Key}}" hx-target="#ann-{{.Key}}"
+       hx-select="#ann-{{.Key}}" hx-swap="outerHTML">{{if .Body}}Edit{{else}}Add{{end}}</a>
+    {{end}}
+  </div>
+  {{if .Editing}}
+  <form method="post" action="/resources/{{.ResourceID}}/annotations/{{.Key}}"
+        hx-post="/resources/{{.ResourceID}}/annotations/{{.Key}}"
+        hx-target="#ann-{{.Key}}" hx-swap="outerHTML" class="ann-form">
+    <textarea name="body" rows="7" placeholder="{{.Help}}" autofocus>{{.Body}}</textarea>
+    <div class="form-actions">
+      <button type="submit">Save</button>
+      <a href="/resources/{{.ResourceID}}#ann-{{.Key}}"
+         hx-get="/resources/{{.ResourceID}}" hx-target="#ann-{{.Key}}"
+         hx-select="#ann-{{.Key}}" hx-swap="outerHTML">Cancel</a>
+      <span class="dim">Markdown supported. Saving an empty box removes the note.</span>
+    </div>
+  </form>
+  {{else if .Body}}
+  <div class="md">{{markdown .Body}}</div>
+  <div class="dim ann-updated">updated {{.UpdatedAt}}</div>
+  {{else}}
+  <p class="ann-empty">{{.Help}}</p>
+  {{end}}
+</div>
+{{end}}

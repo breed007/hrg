@@ -1,0 +1,4 @@
+[
+  {"Name": "bridge", "Driver": "bridge"},
+  {"Name": "media_default", "Driver": "bridge"}
+]

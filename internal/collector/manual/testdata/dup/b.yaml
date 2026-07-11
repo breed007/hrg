@@ -1,0 +1,4 @@
+resources:
+  - id: modem
+    kind: device
+    name: Modem B

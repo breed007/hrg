@@ -1,0 +1,94 @@
+{{define "content"}}
+<h1>Dashboard</h1>
+
+{{if .SetupIncomplete}}
+<div class="banner">
+  <strong>👋 New here?</strong> Run the <a href="/setup">setup wizard</a> to get from empty to a first runbook in five steps.
+</div>
+{{end}}
+
+{{if eq .Stats.TotalResources 0}}
+<div class="empty">
+  <p>No resources yet. Add a <a href="/collectors">collector</a>, or drop YAML files into your <code>resources.d/</code> directory and hit <strong>Collect now</strong>. New? Try the <a href="/setup">setup wizard</a>.</p>
+</div>
+{{else}}
+<div class="cards">
+  <div class="card">
+    <div class="card-num">{{.Stats.TotalResources}}</div>
+    <div class="card-label">resources</div>
+  </div>
+  <a class="card {{if .Stats.OrphanCount}}card-warn{{end}}" href="/orphans">
+    <div class="card-num">{{.Stats.OrphanCount}}</div>
+    <div class="card-label">orphaned{{if .Stats.OrphanCount}} — review{{end}}</div>
+  </a>
+  <div class="card">
+    <div class="card-num">{{len .Stats.Collectors}}</div>
+    <div class="card-label">collectors</div>
+  </div>
+</div>
+
+<h2>Runbook coverage</h2>
+<div class="cov">
+  <div class="cov-row">
+    <div class="cov-label">Purpose documented</div>
+    <div class="bar"><div class="bar-fill {{if lt .PurposePct 50}}bar-low{{end}}" style="width: {{.PurposePct}}%"></div></div>
+    <div class="cov-nums">{{.Coverage.WithPurpose}}/{{.Coverage.Annotatable}}</div>
+    {{if lt .Coverage.WithPurpose .Coverage.Annotatable}}<a href="/resources?missing=purpose">show missing</a>{{end}}
+  </div>
+  <div class="cov-row">
+    <div class="cov-label">Recovery steps <span class="dim">(hosts, devices, guests, services)</span></div>
+    <div class="bar"><div class="bar-fill {{if lt .RecoveryPct 50}}bar-low{{end}}" style="width: {{.RecoveryPct}}%"></div></div>
+    <div class="cov-nums">{{.Coverage.WithRecovery}}/{{.Coverage.CriticalTotal}}</div>
+    {{if lt .Coverage.WithRecovery .Coverage.CriticalTotal}}<a href="/resources?missing=recovery">show missing</a>{{end}}
+  </div>
+  {{if .Coverage.BackupJobs}}
+  <div class="cov-row">
+    <div class="cov-label">Backups restore-tested</div>
+    <div class="bar"><div class="bar-fill {{if lt .BackupPct 50}}bar-low{{end}}" style="width: {{.BackupPct}}%"></div></div>
+    <div class="cov-nums">{{.Coverage.BackupJobsVerified}}/{{.Coverage.BackupJobs}}</div>
+    {{if lt .Coverage.BackupJobsVerified .Coverage.BackupJobs}}<a href="/resources?kind=backup_job">show jobs</a>{{end}}
+  </div>
+  {{end}}
+  <p class="dim">{{.Coverage.CredentialPointers}} credential pointer{{if ne .Coverage.CredentialPointers 1}}s{{end}} recorded. The runbook is only as good as what's written down — a stressed reader needs the <em>why</em> and the <em>how</em>, not just the inventory.</p>
+  {{if not .StartHereWritten}}
+  <p><span class="badge badge-warn">START HERE unwritten</span> — the runbook's triage page is empty. <a href="/runbook">Write it</a>; it is the most important page in the document.</p>
+  {{end}}
+  <p class="dim">{{if .LastExport}}Last export: {{.LastExport.CreatedAt}} → <code>{{.LastExport.Path}}</code>{{else}}Never exported — <a href="/runbook">generate the runbook</a> so a copy exists outside this app.{{end}}</p>
+</div>
+
+<h2>Inventory by kind</h2>
+<table>
+  <thead><tr><th>Kind</th><th class="num">Count</th></tr></thead>
+  <tbody>
+  {{range .Stats.ByKind}}
+    <tr>
+      <td><a href="/resources?kind={{.Kind}}">{{.Kind}}</a></td>
+      <td class="num">{{.Count}}</td>
+    </tr>
+  {{end}}
+  </tbody>
+</table>
+{{end}}
+
+{{if .Health}}
+<h2>Collector health</h2>
+<table>
+  <thead><tr><th>Collector</th><th>Last run</th><th>When</th><th></th></tr></thead>
+  <tbody>
+  {{range .Health}}
+    <tr>
+      <td>{{.Collector}}</td>
+      <td>{{if eq .Status "ok"}}<span class="badge badge-ok">ok</span>{{if .Summary.Warnings}} <span class="badge badge-warn">⚠ {{len .Summary.Warnings}}</span>{{end}}{{else}}<span class="badge badge-err" title="{{.Error}}">error</span>{{end}}</td>
+      <td class="dim">{{.When}}</td>
+      <td>{{if ne .Status "ok"}}<span class="dim">{{.Error}}</span>{{end}}</td>
+    </tr>
+  {{end}}
+  </tbody>
+</table>
+{{end}}
+
+{{if .Runs}}
+<h2>Recent runs</h2>
+{{template "run-table" .Runs}}
+{{end}}
+{{end}}

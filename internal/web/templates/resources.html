@@ -1,0 +1,35 @@
+{{define "content"}}
+<h1>Resources</h1>
+
+<form class="filters" method="get" action="/resources"
+      hx-get="/resources" hx-target="#resource-table" hx-push-url="true" hx-trigger="change, keyup delay:250ms from:input[name=q]">
+  <label>Search
+    <input name="q" value="{{.Filter.Query}}" placeholder="name or source id" autocomplete="off">
+  </label>
+  <label>Kind
+    <select name="kind">
+      <option value="">all</option>
+      {{range .Kinds}}<option value="{{.}}" {{if eq (printf "%s" .) $.Filter.Kind}}selected{{end}}>{{.}}</option>{{end}}
+    </select>
+  </label>
+  <label>Collector
+    <select name="collector">
+      <option value="">all</option>
+      {{range .Collectors}}<option value="{{.}}" {{if eq . $.Filter.Collector}}selected{{end}}>{{.}}</option>{{end}}
+    </select>
+  </label>
+  <label>Missing annotation
+    <select name="missing">
+      <option value="">—</option>
+      <option value="purpose" {{if eq .Filter.Missing "purpose"}}selected{{end}}>purpose</option>
+      <option value="recovery" {{if eq .Filter.Missing "recovery"}}selected{{end}}>recovery</option>
+      <option value="credential_pointer" {{if eq .Filter.Missing "credential_pointer"}}selected{{end}}>credential pointer</option>
+    </select>
+  </label>
+  <noscript><button type="submit">Filter</button></noscript>
+</form>
+
+<div id="resource-table">
+{{template "resource-table" .Resources}}
+</div>
+{{end}}

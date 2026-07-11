@@ -1,0 +1,20 @@
+# Build artifacts and local state — never bake these into the image.
+hrg
+hrg.db
+hrg.db-shm
+hrg.db-wal
+hrg.key
+/exports/
+dist/
+
+# VCS and editor cruft
+.git
+.gitignore
+*.md
+!README.md
+
+# The launch config is a local dev convenience.
+.claude/
+
+# Docs and images are not needed in the image.
+docs/

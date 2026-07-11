@@ -1,0 +1,9 @@
+{
+  "data": [
+    {"id": "node/pve1", "type": "node", "node": "pve1", "status": "online", "uptime": 2592000, "maxcpu": 16, "maxmem": 67108864000, "level": ""},
+    {"id": "qemu/104", "type": "qemu", "vmid": 104, "name": "docker-host", "node": "pve1", "status": "running", "maxcpu": 4, "maxmem": 8589934592, "maxdisk": 68719476736, "uptime": 1728000, "template": 0, "tags": "prod"},
+    {"id": "qemu/110", "type": "qemu", "vmid": 110, "name": "win-test", "node": "pve1", "status": "stopped", "maxcpu": 2, "maxmem": 4294967296, "maxdisk": 34359738368, "template": 0},
+    {"id": "lxc/105", "type": "lxc", "vmid": 105, "name": "reverse-proxy", "node": "pve1", "status": "running", "maxcpu": 2, "maxmem": 1073741824, "maxdisk": 8589934592, "template": 0, "tags": "prod;critical"},
+    {"id": "storage/pve1/local-zfs", "type": "storage", "storage": "local-zfs", "node": "pve1", "status": "available", "plugintype": "zfspool", "maxdisk": 1099511627776, "disk": 214748364800, "shared": 0}
+  ]
+}

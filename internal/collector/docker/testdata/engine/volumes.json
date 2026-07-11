@@ -1,0 +1,6 @@
+{
+  "Volumes": [
+    {"Name": "plex-config", "Driver": "local", "Mountpoint": "/var/lib/docker/volumes/plex-config/_data"}
+  ],
+  "Warnings": null
+}

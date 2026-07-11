@@ -1,0 +1,56 @@
+{{define "content"}}
+<p class="crumbs"><a href="/runs">Runs</a> / run #{{.Detail.Run.ID}}</p>
+<h1>Run #{{.Detail.Run.ID}}
+  {{if eq .Detail.Run.Status "ok"}}<span class="badge badge-ok">ok</span>{{else}}<span class="badge badge-err">error</span>{{end}}
+</h1>
+
+<dl class="meta">
+  <dt>Collector</dt><dd>{{.Detail.Run.Collector}}</dd>
+  <dt>Started</dt><dd>{{.Detail.Run.StartedAt}}</dd>
+  {{if .Detail.Run.FinishedAt}}<dt>Finished</dt><dd>{{.Detail.Run.FinishedAt}}</dd>{{end}}
+  {{if .Detail.Run.Error}}<dt>Error</dt><dd class="err-text">{{.Detail.Run.Error}}</dd>{{end}}
+</dl>
+
+{{if .Detail.Run.Summary.Warnings}}
+<div class="warn-box">
+  <strong>⚠ {{len .Detail.Run.Summary.Warnings}} warning(s)</strong> — the run succeeded, but some input was skipped:
+  <ul>
+  {{range .Detail.Run.Summary.Warnings}}<li>{{.}}</li>{{end}}
+  </ul>
+</div>
+{{end}}
+
+{{if not (or .Detail.Added .Changed .Detail.Removed)}}
+{{if eq .Detail.Run.Status "ok"}}<p class="empty">No changes — everything matched the previous run.</p>{{end}}
+{{end}}
+
+{{if .Detail.Added}}
+<h2>Added ({{len .Detail.Added}})</h2>
+{{template "resource-table" .Detail.Added}}
+{{end}}
+
+{{if .Changed}}
+<h2>Changed ({{len .Changed}})</h2>
+{{range .Changed}}
+<h3><a href="/resources/{{.ID}}">{{.Name}}</a> <span class="kind">{{.Kind}}</span></h3>
+<table class="diff">
+  <thead><tr><th>Attribute</th><th>Before</th><th>After</th></tr></thead>
+  <tbody>
+  {{range .Diffs}}
+    <tr>
+      <th class="attr-key">{{.Key}}</th>
+      <td class="diff-old">{{if .Old}}<code>{{.Old}}</code>{{else}}—{{end}}</td>
+      <td class="diff-new">{{if .New}}<code>{{.New}}</code>{{else}}—{{end}}</td>
+    </tr>
+  {{end}}
+  </tbody>
+</table>
+{{end}}
+{{end}}
+
+{{if .Detail.Removed}}
+<h2>Removed ({{len .Detail.Removed}})</h2>
+<p class="dim">These resources were present in the previous run but not this one. They stay in the inventory as orphans — their history and notes are preserved.</p>
+{{template "resource-table" .Detail.Removed}}
+{{end}}
+{{end}}

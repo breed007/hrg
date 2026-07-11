@@ -1,0 +1,101 @@
+{{define "content"}}
+<p class="crumbs"><a href="/resources">Resources</a> / {{.Resource.Name}}</p>
+<h1>{{.Resource.Name}}
+  <span class="kind">{{.Resource.Kind}}</span>
+  {{if .Resource.Orphaned}}<span class="badge badge-warn">orphaned — not seen in latest {{.Resource.Collector}} run</span>{{end}}
+</h1>
+
+<dl class="meta">
+  <dt>Identity</dt><dd><code>{{.Resource.Collector}} / {{.Resource.SourceID}}</code></dd>
+  <dt>First seen</dt><dd>run #{{.Resource.FirstSeenRun}}</dd>
+  <dt>Last seen</dt><dd>run #{{.Resource.LastSeenRun}}</dd>
+</dl>
+
+<h2>Notes &amp; procedures</h2>
+<div class="ann-grid">
+{{range .AnnBlocks}}{{template "annotation-block" .}}{{end}}
+</div>
+
+{{if .IsBackupJob}}
+<h2>Restore verification</h2>
+<div class="ann">
+  <p>Last verified: {{if .BackupVerified}}<strong>{{.BackupVerified}}</strong>{{else}}<span class="badge badge-warn">never — an untested backup is a hope, not a backup</span>{{end}}</p>
+  <form method="post" action="/resources/{{.Resource.ID}}/backup-check" class="dep-form">
+    <input name="note" placeholder="optional note (e.g. restored VM 104 to scratch, booted OK)" style="flex:1">
+    <button type="submit">I tested a restore just now</button>
+  </form>
+  <p class="dim">Recording a restore test resets the "last verified" clock. This is the single most important freshness signal in the runbook.</p>
+</div>
+{{end}}
+
+{{if .Resource.Attrs}}
+<h2>Attributes</h2>
+<table>
+  <tbody>
+  {{range $k, $v := .Resource.Attrs}}
+    <tr><th class="attr-key">{{$k}}</th><td>{{json $v}}</td></tr>
+  {{end}}
+  </tbody>
+</table>
+{{end}}
+
+<h2>Relationships</h2>
+{{if .Resource.Edges}}
+<table>
+  <tbody>
+  {{range .Resource.Edges}}
+    <tr>
+      {{if .Outbound}}
+      <td>this <span class="rel">—{{.Relation}}→</span></td>
+      {{else}}
+      <td><span class="rel">←{{.Relation}}—</span> this</td>
+      {{end}}
+      <td><a href="/resources/{{.PeerID}}">{{.PeerName}}</a> <span class="kind">{{.PeerKind}}</span></td>
+      <td class="dim">{{.Origin}}</td>
+      <td>
+        {{if eq .Origin "manual"}}
+        <form method="post" action="/edges/{{.EdgeID}}/delete" class="inline"
+              onsubmit="return confirm('Remove this manual relationship?')">
+          <input type="hidden" name="rid" value="{{$.Resource.ID}}">
+          <button type="submit" class="btn-danger btn-small" title="Remove manual relationship">×</button>
+        </form>
+        {{end}}
+      </td>
+    </tr>
+  {{end}}
+  </tbody>
+</table>
+{{else}}
+<p class="empty">No relationships yet.</p>
+{{end}}
+
+<form method="post" action="/resources/{{.Resource.ID}}/edges" class="dep-form">
+  <select name="direction">
+    <option value="out">this</option>
+    <option value="in">the other resource</option>
+  </select>
+  <select name="relation">
+    {{range .Relations}}<option {{if eq (printf "%s" .) "depends_on"}}selected{{end}}>{{.}}</option>{{end}}
+  </select>
+  <select name="target">
+    {{range .Targets}}<option value="{{.ID}}">{{.Name}} ({{.Collector}} · {{.Kind}})</option>{{end}}
+  </select>
+  <button type="submit">Add relationship</button>
+</form>
+<p class="dim">Manual relationships supplement what collectors discover — "Plex needs the NAS mounted first" is knowledge only you have.</p>
+
+<h2>Version history</h2>
+<table>
+  <thead><tr><th>Valid from</th><th>Valid to</th><th>Name</th><th>Attributes</th></tr></thead>
+  <tbody>
+  {{range .Resource.Versions}}
+    <tr>
+      <td>run #{{.ValidFromRun}}</td>
+      <td>{{if .ValidToRun}}run #{{.ValidToRun}}{{else}}<span class="badge">current</span>{{end}}</td>
+      <td>{{.Name}}</td>
+      <td><code class="attrs">{{json .Attrs}}</code></td>
+    </tr>
+  {{end}}
+  </tbody>
+</table>
+{{end}}

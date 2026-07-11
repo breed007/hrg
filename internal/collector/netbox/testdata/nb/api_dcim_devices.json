@@ -1,0 +1,9 @@
+{
+  "count": 2,
+  "next": null,
+  "previous": null,
+  "results": [
+    {"id": 21, "name": "pve1", "device_type": {"model": "PowerEdge R730", "manufacturer": {"name": "Dell"}}, "role": {"name": "Hypervisor"}, "site": {"name": "Home"}, "rack": {"id": 31, "name": "R1"}, "primary_ip": {"address": "10.0.10.10/24"}, "status": {"value": "active"}},
+    {"id": 22, "name": "nas", "device_type": {"model": "DS920+", "manufacturer": {"name": "Synology"}}, "role": {"name": "Storage"}, "site": {"name": "Home"}, "rack": {"id": 31, "name": "R1"}, "primary_ip": {"address": "10.0.10.5/24"}, "status": {"value": "active"}}
+  ]
+}

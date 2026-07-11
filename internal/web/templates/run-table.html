@@ -1,0 +1,19 @@
+{{define "run-table"}}
+<table>
+  <thead><tr><th>#</th><th>Collector</th><th>Started</th><th>Status</th><th class="num">Seen</th><th class="num">Added</th><th class="num">Changed</th><th class="num">Removed</th></tr></thead>
+  <tbody>
+  {{range .}}
+    <tr>
+      <td><a href="/runs/{{.ID}}">{{.ID}}</a></td>
+      <td>{{.Collector}}</td>
+      <td>{{.StartedAt}}</td>
+      <td>{{if eq .Status "ok"}}<span class="badge badge-ok">ok</span>{{else}}<span class="badge badge-err" title="{{.Error}}">error</span>{{end}}{{if .Summary.Warnings}} <span class="badge badge-warn" title="{{len .Summary.Warnings}} warning(s) — click the run">⚠ {{len .Summary.Warnings}}</span>{{end}}</td>
+      <td class="num">{{.Summary.Seen}}</td>
+      <td class="num">{{.Summary.Added}}</td>
+      <td class="num">{{.Summary.Changed}}</td>
+      <td class="num">{{.Summary.Removed}}</td>
+    </tr>
+  {{end}}
+  </tbody>
+</table>
+{{end}}

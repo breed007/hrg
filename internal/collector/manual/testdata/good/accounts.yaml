@@ -1,0 +1,10 @@
+resources:
+  - id: isp-account
+    kind: account
+    name: Comcast Business internet account
+    attrs:
+      phone: 1-800-391-3000
+      credentials: 1Password vault "Home", item "Comcast"
+    edges:
+      - relation: depends_on
+        to: modem

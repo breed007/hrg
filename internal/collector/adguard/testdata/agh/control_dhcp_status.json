@@ -1,0 +1,10 @@
+{
+  "enabled": true,
+  "interface_name": "eth0",
+  "v4": {"gateway_ip": "10.0.20.1", "subnet_mask": "255.255.255.0", "range_start": "10.0.20.100", "range_end": "10.0.20.200"},
+  "static_leases": [
+    {"mac": "de:ad:be:ef:00:01", "ip": "10.0.20.50", "hostname": "front-door-cam"},
+    {"mac": "de:ad:be:ef:00:02", "ip": "10.0.20.51", "hostname": "thermostat"}
+  ],
+  "leases": []
+}

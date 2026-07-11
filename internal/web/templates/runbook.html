@@ -1,0 +1,118 @@
+{{define "content"}}
+<h1>Runbook</h1>
+<p class="dim">The artifact is the product: a self-contained document that works when HRG — and the network — are down. The two pages below are the parts only a human can write.</p>
+
+{{template "runbook-page" dict2 "Page" .StartHere "Label" "START HERE" "Help" "The triage page: the internet is down, the TV doesn't work, something is beeping. Written for a stressed non-expert — plain language, physical locations, power buttons. This is the most important page in the runbook."}}
+
+{{template "runbook-page" dict2 "Page" .Contacts "Label" "Emergency contacts & accounts" "Help" "ISP support, registrar, where the password vault is, who has emergency access, which account pays for what."}}
+
+<h2>Generate</h2>
+{{if .Err}}<p class="form-error">{{.Err}}</p>{{end}}
+<form method="post" action="/runbook/settings" class="stack">
+  <label>Runbook title
+    <input name="title" value="{{.Cfg.Title}}">
+  </label>
+  <label>Export directory
+    <input name="export_dir" value="{{.Cfg.ExportDir}}">
+    <small>Receives <code>runbook.html</code> (single self-contained file), <code>runbook-md/</code> (git-committable tree){{if .Cfg.PDF}}, and <code>runbook.pdf</code>{{end}}. Exports are sensitive — they map your network.</small>
+  </label>
+  <label class="check"><input type="checkbox" name="git_commit" {{if .Cfg.GitCommit}}checked{{end}}> Commit the markdown tree after each export <small>(run <code>git init</code> inside <code>runbook-md/</code> once — history for free)</small></label>
+  <label class="check"><input type="checkbox" name="export_pdf" {{if .Cfg.PDF}}checked{{end}} {{if not .HasChrome}}disabled{{end}}> Also render a PDF
+    {{if not .HasChrome}}<small class="badge badge-warn">no Chrome/Chromium found — install one for PDF export</small>{{else}}<small>via headless Chrome</small>{{end}}
+  </label>
+
+  <h3>Output styling</h3>
+  <label>Theme
+    <select name="theme">
+      {{range .Themes}}<option value="{{.}}" {{if eq . $.Cfg.Theme}}selected{{end}}>{{.}}</option>{{end}}
+    </select>
+    <small>A safe built-in style. Custom CSS below still overrides it.</small>
+  </label>
+  <label>Paper size <small>(PDF)</small>
+    <select name="paper_size">
+      <option value="letter" {{if ne .Cfg.PaperSize "a4"}}selected{{end}}>US Letter</option>
+      <option value="a4" {{if eq .Cfg.PaperSize "a4"}}selected{{end}}>A4</option>
+    </select>
+  </label>
+  <label>Custom CSS
+    <textarea name="custom_css" rows="8" spellcheck="false" placeholder="/* Restyles the HTML and PDF together. Yours wins over the defaults. */
+body { font-family: 'Helvetica Neue', sans-serif; }
+h2 { color: #0a5; }
+#appendix { display: none; }        /* drop a whole section */
+.subtitle { display: none; }">{{.Cfg.CustomCSS}}</textarea>
+    <small>Appended after the built-in stylesheet, so your rules override. Targetable section IDs: <code>#start-here</code> <code>#contacts</code> <code>#physical</code> <code>#network</code> <code>#services</code> <code>#backups</code> <code>#appendix</code>. Useful classes: <code>.entry</code> <code>.warn</code> <code>.md</code> <code>.kind</code> <code>.toc</code> <code>.starthere</code>. Use <strong>Preview artifact</strong> below to check changes before exporting.</small>
+  </label>
+
+  <h3>Scheduling &amp; alerts</h3>
+  <label>Collection schedule (cron)
+    <input name="schedule" value="{{.Cfg.Schedule}}" placeholder="@daily  or  0 3 * * *">
+    <small>Runs all collectors on this schedule. Blank = manual only. Descriptors like <code>@daily</code>, <code>@hourly</code> work.{{if .NextRun}} Next run: <strong>{{.NextRun}}</strong>.{{end}}</small>
+  </label>
+  <label class="check"><input type="checkbox" name="auto_export" {{if .Cfg.AutoExport}}checked{{end}}> Regenerate the runbook automatically when a scheduled run detects drift</label>
+  <label>Notification URL (ntfy / webhook)
+    <input name="notify_url" value="{{.Cfg.NotifyURL}}" placeholder="https://ntfy.sh/my-homelab-topic">
+    <small>POSTed a plain-text alert when a scheduled run finds drift or a collector fails. Works with ntfy.sh, self-hosted ntfy, or any webhook.</small>
+  </label>
+  <div class="form-actions">
+    <button type="submit">Save settings</button>
+    <button type="submit" formaction="/runbook/notify-test" formmethod="post"
+            hx-post="/runbook/notify-test" hx-target="#notify-result" hx-swap="innerHTML"
+            class="btn-secondary">Send test notification</button>
+    <span id="notify-result"></span>
+  </div>
+</form>
+
+<div class="form-actions gen-row">
+  <form method="post" action="/runbook/generate" class="inline">
+    <button type="submit">Generate runbook</button>
+  </form>
+  <a href="/runbook/preview" target="_blank">Preview artifact</a>
+  {{if .Latest}}<a href="/runbook/download/html">Download HTML</a>{{end}}
+  {{if .LatestPDF}}<a href="/runbook/download/pdf">Download PDF</a>{{end}}
+  {{if .Latest}}<span class="dim">last export {{.Latest.CreatedAt}}</span>{{end}}
+</div>
+
+{{if .Exports}}
+<h2>Export history</h2>
+<table>
+  <thead><tr><th>When</th><th>Format</th><th>Path</th><th>Status</th><th>Detail</th></tr></thead>
+  <tbody>
+  {{range .Exports}}
+    <tr>
+      <td>{{.CreatedAt}}</td>
+      <td>{{.Format}}</td>
+      <td><code>{{.Path}}</code></td>
+      <td>{{if eq .Status "ok"}}<span class="badge badge-ok">ok</span>{{else}}<span class="badge badge-err">error</span>{{end}}</td>
+      <td class="dim">{{.Detail}}</td>
+    </tr>
+  {{end}}
+  </tbody>
+</table>
+{{end}}
+{{end}}
+
+{{define "runbook-page"}}
+<div class="ann rb-page" id="page-{{.Page.Slug}}">
+  <div class="ann-head">
+    <h3>{{.Label}}</h3>
+    {{if not .Page.Editing}}
+    <a class="ann-edit" href="/runbook?edit={{.Page.Slug}}#page-{{.Page.Slug}}">{{if .Page.Body}}Edit{{else}}Write it{{end}}</a>
+    {{end}}
+  </div>
+  {{if .Page.Editing}}
+  <form method="post" action="/runbook/pages/{{.Page.Slug}}">
+    <textarea name="body" rows="18">{{.Page.EditBody}}</textarea>
+    <div class="form-actions">
+      <button type="submit">Save</button>
+      <a href="/runbook#page-{{.Page.Slug}}">Cancel</a>
+      <span class="dim">Markdown. Saving an empty box marks the page unwritten again.</span>
+    </div>
+  </form>
+  {{else if .Page.Body}}
+  <div class="md">{{markdown .Page.Body}}</div>
+  <div class="dim ann-updated">updated {{.Page.UpdatedAt}}</div>
+  {{else}}
+  <p class="ann-empty">⚠ Not written yet. {{.Help}}</p>
+  {{end}}
+</div>
+{{end}}

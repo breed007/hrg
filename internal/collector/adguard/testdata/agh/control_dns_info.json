@@ -1,0 +1,4 @@
+{
+  "upstream_dns": ["https://dns.quad9.net/dns-query", "tls://1.1.1.1"],
+  "bootstrap_dns": ["9.9.9.9"]
+}

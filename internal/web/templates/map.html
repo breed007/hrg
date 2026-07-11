@@ -1,0 +1,21 @@
+{{define "content"}}
+<h1>Network map</h1>
+
+{{if .Empty}}
+<p class="empty">Nothing to draw yet — the map is generated from collected hosts, devices, networks, VLANs, and locations. Add a UniFi or NetBox collector, or describe your gear in <code>resources.d/</code>.</p>
+{{else}}
+<div class="map-wrap">
+<pre class="mermaid">{{.Source}}</pre>
+</div>
+<p class="dim">Solid lines: physical attachment · dashed: membership/location · click a node for details. Generated from collected relationships.</p>
+{{end}}
+
+<script src="/static/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    securityLevel: 'loose',
+    theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'neutral'
+  });
+</script>
+{{end}}

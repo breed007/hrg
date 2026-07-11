@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 720" width="900" height="720" font-family="Georgia, 'Times New Roman', serif">
+  <!-- paper -->
+  <rect width="900" height="720" rx="10" fill="#ffffff"/>
+  <rect x="1" y="1" width="898" height="718" rx="9" fill="none" stroke="#d8d8d2"/>
+
+  <!-- header -->
+  <text x="54" y="74" font-size="34" font-weight="800" fill="#1a1a18" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Homelab Runbook</text>
+  <text x="54" y="102" font-size="13" fill="#666">Generated July 11, 2026 · self-contained — it works with the network down.</text>
+  <text x="54" y="120" font-size="13" fill="#666">A map of this home's infrastructure: <tspan font-weight="700" fill="#1a1a18">store it as carefully as a spare key.</tspan></text>
+
+  <line x1="54" y1="150" x2="846" y2="150" stroke="#22503b" stroke-width="3"/>
+  <text x="54" y="188" font-size="22" font-weight="700" fill="#22503b" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">1 · START HERE</text>
+
+  <!-- boxed triage -->
+  <rect x="54" y="206" width="792" height="404" rx="10" fill="#ffffff" stroke="#22503b" stroke-width="2"/>
+  <text x="80" y="250" font-size="26" font-weight="800" fill="#1a1a18" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">START HERE</text>
+  <text x="80" y="278" font-size="15" font-style="italic" fill="#444">(Stay calm — most fixes are power cycles.)</text>
+
+  <text x="80" y="322" font-size="17" font-weight="700" fill="#22503b" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">The internet is down</text>
+  <g font-size="15" fill="#1a1a18">
+    <text x="80" y="352">1.  Go to the <tspan font-weight="700">basement network closet</tspan> (down the stairs, first door left).</text>
+    <text x="80" y="380">2.  Unplug the <tspan font-weight="700">cable modem</tspan> (top shelf), wait 30 seconds, plug back in.</text>
+    <text x="80" y="408">3.  Wait ~2 minutes. Blue lights = good.</text>
+    <text x="80" y="436">4.  Still down after 15 min? Call the ISP — number on the contacts page.</text>
+  </g>
+
+  <text x="80" y="478" font-size="17" font-weight="700" fill="#22503b" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">The TV / Plex doesn't work</text>
+  <g font-size="15" fill="#1a1a18">
+    <text x="80" y="508">1.  Internet working on your phone? If not, see above.</text>
+    <text x="80" y="536">2.  Plex runs on the <tspan font-weight="700">docker-host</tspan> VM — restart it, or power-cycle</text>
+    <text x="104" y="558">the big server in the rack (hold power 5s, wait, press again).</text>
+  </g>
+
+  <text x="80" y="600" font-size="17" font-weight="700" fill="#22503b" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Something is beeping</text>
+
+  <!-- footer note -->
+  <text x="54" y="654" font-size="13" fill="#666" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Followed by: contacts &amp; accounts · physical layer · network map · service catalog · backup &amp; restore · full appendix.</text>
+  <text x="54" y="688" font-size="12.5" fill="#888" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">The hand-authored triage page is written for a stressed non-expert first, an engineer second. HRG nags you until it exists.</text>
+</svg>

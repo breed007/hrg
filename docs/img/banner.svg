@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 340" width="1200" height="340" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <rect width="1200" height="340" rx="18" fill="#141613"/>
+  <rect x="1" y="1" width="1198" height="338" rx="17" fill="none" stroke="#2c302b" stroke-width="2"/>
+
+  <!-- subtle network motif on the right -->
+  <g stroke="#2f6f4f" stroke-width="2" opacity="0.5" fill="none">
+    <line x1="980" y1="90" x2="1080" y2="150"/>
+    <line x1="1080" y1="150" x2="980" y2="210"/>
+    <line x1="1080" y1="150" x2="1120" y2="90"/>
+    <line x1="1080" y1="150" x2="1120" y2="210"/>
+  </g>
+  <g fill="#7fc9a2">
+    <circle cx="980" cy="90" r="10"/>
+    <circle cx="980" cy="210" r="10"/>
+    <circle cx="1120" cy="90" r="10"/>
+    <circle cx="1120" cy="210" r="10"/>
+  </g>
+  <rect x="1058" y="128" width="44" height="44" rx="8" fill="#3a8161"/>
+
+  <!-- wordmark -->
+  <text x="70" y="130" font-size="76" font-weight="800" fill="#7fc9a2" letter-spacing="4">HRG</text>
+  <text x="74" y="176" font-size="26" font-weight="600" fill="#e8e8e2">Homelab Runbook Generator</text>
+
+  <!-- tagline -->
+  <text x="74" y="228" font-size="19" fill="#b9bcb4">Your homelab's &quot;hit by a bus&quot; document — generated from the</text>
+  <text x="74" y="256" font-size="19" fill="#b9bcb4">infrastructure itself, and it still works <tspan font-weight="700" fill="#e8e8e2">when the network is down.</tspan></text>
+
+  <!-- chips -->
+  <g font-size="14" font-weight="600">
+    <rect x="74"  y="284" width="150" height="30" rx="15" fill="#1d2620" stroke="#2f6f4f"/>
+    <text x="149" y="304" fill="#7fc9a2" text-anchor="middle">self-hosted</text>
+    <rect x="236" y="284" width="176" height="30" rx="15" fill="#1d2620" stroke="#2f6f4f"/>
+    <text x="324" y="304" fill="#7fc9a2" text-anchor="middle">single Go binary</text>
+    <rect x="424" y="284" width="150" height="30" rx="15" fill="#1d2620" stroke="#2f6f4f"/>
+    <text x="499" y="304" fill="#7fc9a2" text-anchor="middle">read-only</text>
+    <rect x="586" y="284" width="210" height="30" rx="15" fill="#1d2620" stroke="#2f6f4f"/>
+    <text x="691" y="304" fill="#7fc9a2" text-anchor="middle">HTML · Markdown · PDF</text>
+  </g>
+</svg>

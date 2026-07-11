@@ -1,0 +1,42 @@
+{{define "content"}}
+<h1>Settings</h1>
+{{if .Err}}<p class="form-error">{{.Err}}</p>{{end}}
+{{if .Msg}}<p class="form-ok">{{.Msg}}</p>{{end}}
+
+<h2>Access password</h2>
+<p class="dim">HRG has no authentication until you set a password here. It has no auth of its own by design — but if it's reachable beyond your own machine, set one. {{if .AuthOn}}<span class="badge badge-ok">enabled</span>{{else}}<span class="badge badge-warn">not set — the UI is open to anyone who can reach it</span>{{end}}</p>
+<form method="post" action="/auth/password" class="stack">
+  <input type="hidden" name="back" value="/settings">
+  {{if .AuthOn}}
+  <label>Current password
+    <input name="current_password" type="password" autocomplete="current-password">
+  </label>
+  {{end}}
+  <label>New password <small>(at least 8 characters; leave blank and save to remove the password)</small>
+    <input name="new_password" type="password" autocomplete="new-password">
+  </label>
+  <div class="form-actions"><button type="submit">{{if .AuthOn}}Change password{{else}}Set password{{end}}</button></div>
+</form>
+
+<h2>Configuration backup</h2>
+<p class="dim">Back up everything a fresh collection can't recreate: collector configs (with encrypted tokens), the START HERE and contacts pages, annotations, manual relationships, restore-test records, and settings. <strong>This file is as sensitive as your database</strong> — it holds sealed tokens and the password hash, and only restores alongside the same key file.</p>
+<p class="form-actions">
+  <a class="btn" href="/config/export">Download config backup</a>
+</p>
+<form method="post" action="/config/import" enctype="multipart/form-data" class="stack">
+  <label>Restore from a backup file
+    <input name="backup" type="file" accept="application/json,.json">
+    <small>Settings, pages, and collectors apply immediately. Annotations and relationships attach to resources that already exist — if you're restoring onto a fresh install, run a collection first, then re-import.</small>
+  </label>
+  <div class="form-actions"><button type="submit">Import</button></div>
+</form>
+
+{{if .Dev}}<p class="dim"><span class="badge badge-warn">dev mode</span> Developer affordances (collector fixture directories) are enabled. Do not run <code>-dev</code> in production.</p>{{end}}
+
+{{if .AuthOn}}
+<h2>Session</h2>
+<form method="post" action="/logout" class="inline">
+  <button type="submit" class="btn-danger">Log out</button>
+</form>
+{{end}}
+{{end}}

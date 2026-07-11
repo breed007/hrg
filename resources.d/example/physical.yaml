@@ -1,0 +1,34 @@
+# Example manual resources — the facts no API can tell you.
+# Copy this directory's files as a starting point and edit; HRG picks up
+# every *.yaml / *.yml in the resources.d directory (not subdirectories).
+#
+# The `id` is the resource's permanent identity. Annotations and history
+# key off it, so pick something readable and never rename it casually.
+
+resources:
+  - id: basement-closet
+    kind: location
+    name: Basement network closet
+    attrs:
+      directions: Down the stairs, first door on the left. Light switch outside the door.
+
+  - id: modem
+    kind: device
+    name: Cable modem (Arris SB8200)
+    attrs:
+      location: basement closet, top shelf
+      power_cycle: Unplug the power cord for 30 seconds, plug back in. Online when the blue lights stop blinking (~2 min).
+    edges:
+      - relation: located_in
+        to: basement-closet
+
+  - id: ups
+    kind: device
+    name: UPS (CyberPower CP1500)
+    attrs:
+      location: basement closet, floor
+      notes: Beeping means it is running on battery — check whether the whole house has power first.
+      battery_replaced: "2025-03"
+    edges:
+      - relation: located_in
+        to: basement-closet

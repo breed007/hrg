@@ -1,0 +1,99 @@
+{{define "content"}}
+<p class="crumbs"><a href="/collectors">Collectors</a> / {{if .IsNew}}new {{.Type}}{{else}}{{.Instance}}{{end}}</p>
+<h1>{{if .IsNew}}Add {{.Type}} collector{{else}}Edit {{.Instance}}{{end}}</h1>
+
+{{if .Error}}<p class="form-error">{{.Error}}</p>{{end}}
+
+<form method="post" action="{{if .IsNew}}/collectors{{else}}/collectors/{{.ID}}{{end}}" class="stack">
+  <input type="hidden" name="type" value="{{.Type}}">
+
+  {{if .IsNew}}
+  <label>Instance name
+    <input name="name" value="{{.Name}}" required pattern="[a-z0-9][a-z0-9-]*" placeholder="{{if eq .Type "proxmox"}}pve1{{else if eq .Type "unifi"}}home{{else if eq .Type "netbox"}}main{{else if eq .Type "adguard"}}dns1{{else}}nas{{end}}">
+    <small>Lowercase letters, digits, hyphens. Becomes <code>{{.Type}}:&lt;name&gt;</code> — resources are recorded under this identity, so it cannot be renamed later.</small>
+  </label>
+  {{end}}
+
+  {{if eq .Type "proxmox"}}
+  <label>API URL
+    <input name="url" value="{{index .Vals "url"}}" placeholder="https://pve1.lan:8006">
+  </label>
+  <label>Token ID
+    <input name="token_id" value="{{index .Vals "token_id"}}" placeholder="hrg@pam!readonly">
+    <small>Create a read-only token: <code>pveum user add hrg@pam && pveum acl modify / -user hrg@pam -role PVEAuditor && pveum user token add hrg@pam readonly -privsep 0</code></small>
+  </label>
+  <label>Token secret
+    <input name="secret" type="password" autocomplete="off" placeholder="{{if .IsNew}}UUID shown when the token was created{{else}}leave blank to keep current secret{{end}}">
+  </label>
+  <label class="check"><input type="checkbox" name="insecure_tls" {{if eq (index .Vals "insecure_tls") "true"}}checked{{end}}> Skip TLS verification (self-signed certificate)</label>
+  {{end}}
+
+  {{if eq .Type "docker"}}
+  <label>Engine API host
+    <input name="host" value="{{index .Vals "host"}}" placeholder="unix:///var/run/docker.sock">
+    <small><code>unix:///var/run/docker.sock</code> for local, <code>tcp://host:2375</code> for remote (put it behind a socket proxy — the Docker API is root-equivalent).</small>
+  </label>
+  {{end}}
+
+  {{if eq .Type "unifi"}}
+  <label>Controller URL
+    <input name="url" value="{{index .Vals "url"}}" placeholder="https://192.168.1.1">
+  </label>
+  <label>Site
+    <input name="site" value="{{index .Vals "site"}}" placeholder="default">
+  </label>
+  <label>API key
+    <input name="secret" type="password" autocomplete="off" placeholder="{{if .IsNew}}UniFi Network 9.0+: Settings → Control Plane → Integrations{{else}}leave blank to keep current key{{end}}">
+  </label>
+  <label class="check"><input type="checkbox" name="classic" {{if eq (index .Vals "classic") "true"}}checked{{end}}> Self-hosted classic controller (API at root, not <code>/proxy/network</code>)</label>
+  <label class="check"><input type="checkbox" name="insecure_tls" {{if eq (index .Vals "insecure_tls") "true"}}checked{{end}}> Skip TLS verification (self-signed certificate)</label>
+  {{end}}
+
+  {{if eq .Type "netbox"}}
+  <label>NetBox URL
+    <input name="url" value="{{index .Vals "url"}}" placeholder="http://netbox.lan:8000">
+  </label>
+  <label>API token
+    <input name="secret" type="password" autocomplete="off" placeholder="{{if .IsNew}}read-only token from /user/api-tokens/{{else}}leave blank to keep current token{{end}}">
+  </label>
+  <label class="check"><input type="checkbox" name="insecure_tls" {{if eq (index .Vals "insecure_tls") "true"}}checked{{end}}> Skip TLS verification</label>
+  {{end}}
+
+  {{if eq .Type "adguard"}}
+  <label>AdGuard Home URL
+    <input name="url" value="{{index .Vals "url"}}" placeholder="http://10.0.10.53:3000">
+    <small>The web-interface address, not the DNS port.</small>
+  </label>
+  <label>Username
+    <input name="username" value="{{index .Vals "username"}}" placeholder="admin (leave empty if unprotected)">
+  </label>
+  <label>Password
+    <input name="secret" type="password" autocomplete="off" placeholder="{{if .IsNew}}web-interface password{{else}}leave blank to keep current password{{end}}">
+  </label>
+  <label class="check"><input type="checkbox" name="insecure_tls" {{if eq (index .Vals "insecure_tls") "true"}}checked{{end}}> Skip TLS verification</label>
+  {{end}}
+
+  {{if .Dev}}
+  <details {{if index .Vals "fixture_dir"}}open{{end}}>
+    <summary>Advanced (dev)</summary>
+    <label>Fixture directory
+      <input name="fixture_dir" value="{{index .Vals "fixture_dir"}}">
+      <small>Replay recorded API responses from this directory instead of contacting the endpoint — for demos and testing. Available only in <code>-dev</code> mode.</small>
+    </label>
+  </details>
+  {{end}}
+
+  {{if not .IsNew}}<input type="hidden" name="id" value="{{.ID}}">
+  <label class="check"><input type="checkbox" name="enabled" {{if .Enabled}}checked{{end}}> Enabled</label>
+  {{end}}
+
+  <div class="form-actions">
+    <button type="submit">{{if .IsNew}}Add collector{{else}}Save{{end}}</button>
+    <button type="submit" formaction="/collectors/test" formmethod="post"
+            hx-post="/collectors/test" hx-target="#test-result" hx-swap="innerHTML"
+            class="btn-secondary">Test connection</button>
+    <a href="/collectors">Cancel</a>
+  </div>
+  <div id="test-result"></div>
+</form>
+{{end}}

@@ -1,0 +1,9 @@
+{
+  "meta": {"rc": "ok"},
+  "data": [
+    {"_id": "fw1", "name": "Block IoT to LAN", "enabled": true, "ruleset": "LAN_IN", "action": "drop"},
+    {"_id": "fw2", "name": "Allow IoT DNS", "enabled": true, "ruleset": "LAN_IN", "action": "accept"},
+    {"_id": "fw3", "name": "Old camera rule", "enabled": false, "ruleset": "LAN_IN", "action": "drop"},
+    {"_id": "fw4", "name": "Guest isolation", "enabled": true, "ruleset": "GUEST_IN", "action": "drop"}
+  ]
+}

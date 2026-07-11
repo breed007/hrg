@@ -1,0 +1,31 @@
+{{define "layout"}}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Title}} · HRG</title>
+<link rel="stylesheet" href="/static/style.css">
+<script src="/static/htmx.min.js" defer></script>
+</head>
+<body>
+<header>
+  <a class="brand" href="/">HRG</a>
+  <nav>
+    <a href="/resources">Resources</a>
+    <a href="/map">Map</a>
+    <a href="/ipplan">IP plan</a>
+    <a href="/runbook">Runbook</a>
+    <a href="/runs">Runs</a>
+    <a href="/collectors">Collectors</a>
+    <a href="/settings">Settings</a>
+  </nav>
+  <form method="post" action="/collect" class="collect-form">
+    <button type="submit">Collect now</button>
+  </form>
+</header>
+<main>
+{{block "content" .}}{{end}}
+</main>
+<footer>Homelab Runbook Generator</footer>
+</body>
+</html>{{end}}

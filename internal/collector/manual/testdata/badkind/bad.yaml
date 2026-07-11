@@ -1,0 +1,4 @@
+resources:
+  - id: thing
+    kind: gizmo
+    name: A thing of unknown kind

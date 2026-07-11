@@ -1,0 +1,6 @@
+{
+  "version": "v0.107.52",
+  "protection_enabled": true,
+  "running": true,
+  "dns_addresses": ["10.0.10.53"]
+}

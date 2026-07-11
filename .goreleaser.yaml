@@ -1,0 +1,76 @@
+# GoReleaser configuration — https://goreleaser.com
+#
+#   git tag v0.1.0 && git push --tags
+#   goreleaser release --clean
+#
+# Produces static, CGO-free binaries for the common homelab platforms, plus
+# archives and checksums. The container image is built from the repo
+# Dockerfile (see docker-compose.yml) rather than here, so the two never
+# drift.
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - id: hrg
+    main: ./cmd/hrg
+    binary: hrg
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{.Version}}
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+
+archives:
+  - id: hrg
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    files:
+      - README.md
+      - LICENSE
+      - docker-compose.yml
+      - src: resources.d/example/**/*
+        dst: resources.d/example
+
+checksum:
+  name_template: checksums.txt
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+
+release:
+  github:
+    owner: breed007
+    name: hrg
+  # A release may already exist (created by hand with richer notes); keep
+  # it and just upload the built binaries and checksums.
+  mode: keep-existing
+  header: |
+    ## HRG {{ .Tag }}
+
+    Self-hosted homelab runbook generator. See the README for the
+    docker-compose quickstart.

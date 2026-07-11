@@ -1,0 +1,60 @@
+{{define "content"}}
+<h1>IP plan</h1>
+
+{{if not .HaveNetbox}}
+<p class="empty">No NetBox collector yet — this page reconciles the <em>documented</em> IP plan (NetBox) against what other collectors <em>observe</em>. Without NetBox it can only list what's observed.</p>
+{{end}}
+
+<h2>Subnets</h2>
+{{if .Prefixes}}
+<table>
+  <thead><tr><th>Prefix</th><th>Documented (NetBox)</th><th>Observed by</th><th>Status</th></tr></thead>
+  <tbody>
+  {{range .Prefixes}}
+    <tr>
+      <td><code>{{.CIDR}}</code></td>
+      <td>
+        {{if .Documented}}<a href="/resources/{{.Documented.ResourceID}}">{{.Documented.Name}}</a>
+          {{if .Detail}}<span class="dim">— {{.Detail}}</span>{{end}}
+        {{else}}<span class="dim">—</span>{{end}}
+      </td>
+      <td>
+        {{range $i, $o := .Observed}}{{if $i}}, {{end}}<a href="/resources/{{$o.ResourceID}}">{{$o.Name}}</a> <span class="dim">({{$o.Collector}})</span>{{else}}<span class="dim">—</span>{{end}}
+      </td>
+      <td>{{template "recon-status" .Status}}</td>
+    </tr>
+  {{end}}
+  </tbody>
+</table>
+{{else}}
+<p class="empty">No subnets collected yet.</p>
+{{end}}
+
+<h2>Addresses</h2>
+{{if .IPs}}
+<table>
+  <thead><tr><th>IP</th><th>DNS / documented as</th><th>Observed by</th><th>Status</th></tr></thead>
+  <tbody>
+  {{range .IPs}}
+    <tr>
+      <td><code>{{.IP}}</code></td>
+      <td>
+        {{if .Documented}}{{if .DNS}}<code>{{.DNS}}</code> · {{end}}<a href="/resources/{{.Documented.ResourceID}}">{{.Documented.Name}}</a>
+        {{else}}<span class="dim">—</span>{{end}}
+      </td>
+      <td>
+        {{range $i, $o := .Observed}}{{if $i}}, {{end}}<a href="/resources/{{$o.ResourceID}}">{{$o.Name}}</a> <span class="dim">({{$o.Collector}})</span>{{else}}<span class="dim">—</span>{{end}}
+      </td>
+      <td>{{template "recon-status" .Status}}</td>
+    </tr>
+  {{end}}
+  </tbody>
+</table>
+{{else}}
+<p class="empty">No addresses collected yet.</p>
+{{end}}
+
+<p class="dim">NetBox is treated as the authoritative plan; everything else is observation. <strong>undocumented</strong> = in use but not in NetBox (document it!). <strong>unobserved</strong> = documented but nothing reports it (stale entry, or a collector isn't seeing it).</p>
+{{end}}
+
+{{define "recon-status"}}{{if eq . "ok"}}<span class="badge badge-ok">ok</span>{{else if eq . "undocumented"}}<span class="badge badge-warn">undocumented</span>{{else}}<span class="badge">unobserved</span>{{end}}{{end}}

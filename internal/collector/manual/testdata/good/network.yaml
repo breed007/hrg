@@ -1,0 +1,18 @@
+resources:
+  - id: basement-closet
+    kind: location
+    name: Basement network closet
+    attrs:
+      directions: Down the stairs, door on the left. Light switch is outside the door.
+
+  - id: modem
+    kind: device
+    name: Arris SB8200 cable modem
+    attrs:
+      location: basement closet, top shelf
+      power_cycle: Unplug for 30 seconds, plug back in, wait for the blue light.
+    edges:
+      - relation: located_in
+        to: basement-closet
+      - relation: attached_to
+        to: { collector: "unifi:home", id: "device/udm-pro" }

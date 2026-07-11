@@ -1,0 +1,5 @@
+{
+  "data": [
+    {"id": "backup-f3a2c1d0", "type": "vzdump", "enabled": 1, "schedule": "sun 02:00", "storage": "local-zfs", "mode": "snapshot", "vmid": "104,105", "comment": "weekly guest backup"}
+  ]
+}

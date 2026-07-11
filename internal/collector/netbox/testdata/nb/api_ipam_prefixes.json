@@ -1,0 +1,10 @@
+{
+  "count": 3,
+  "next": null,
+  "previous": null,
+  "results": [
+    {"id": 1, "prefix": "10.0.1.0/24", "description": "Management", "status": {"value": "active"}, "vlan": null},
+    {"id": 2, "prefix": "10.0.10.0/24", "description": "Server VLAN", "status": {"value": "active"}, "vlan": {"vid": 10, "name": "servers"}},
+    {"id": 3, "prefix": "10.0.30.0/24", "description": "Cameras (planned)", "status": {"value": "reserved"}, "vlan": {"vid": 30, "name": "cameras"}}
+  ]
+}
