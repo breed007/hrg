@@ -61,12 +61,68 @@ drift apart.
 
 {{/* Wind-down guidance. Computed from the dependency graph so a reader can
      tell what is safe to switch off. Populated by the blast-radius work. */}}
+{{/* One wind-down row. The author's own sentence wins over the inferred
+     one; where there is no sentence, we say what we worked out and say
+     that we worked it out. */}}
+{{define "winddown-item"}}
+<div class="wd-item">
+  <div class="entry-head">
+    <h4>{{.Name}}</h4>
+    {{if .ImportanceLabel}}<span class="imp imp-{{.Importance}}">{{.ImportanceLabel}}</span>{{end}}
+  </div>
+  {{if .PlainEnglishMD}}<div class="md dim">{{markdown .PlainEnglishMD}}</div>{{end}}
+  {{if .SafeToOffMD}}
+    <div class="md">{{markdown .SafeToOffMD}}</div>
+  {{else if .Breaks}}
+    <p class="wd-breaks">Turning this off also stops:
+      <strong>{{range $i, $n := .Breaks}}{{if $i}}, {{end}}{{$n}}{{end}}</strong>
+      <span class="dim">(worked out from how things connect — nobody has written this down)</span></p>
+  {{else}}
+    <p class="wd-breaks dim">Nothing else appears to depend on this.</p>
+  {{end}}
+  {{if .MonthlyCostMD}}<div class="field-label">Cost</div><div class="md">{{markdown .MonthlyCostMD}}</div>{{end}}
+</div>
+{{end}}
+
 {{define "winddown-body"}}
-<p class="dim">If you need to reduce or shut this down, some things can be switched off with no
-effect and others will take useful things with them. This section is generated from how the
-systems actually depend on each other.</p>
-<div class="warn">Not available yet — no dependency information has been recorded. Whoever
-maintains this can add relationships in the app so this section can be generated.</div>
+<p class="dim">If you need to reduce or shut things down — to save money, or because nobody is
+looking after this any more — some of it can be switched off with no effect, and some of it
+takes useful things with it. This section is worked out from how the systems actually connect.</p>
+
+{{if .Doc.WindDown.Empty}}
+<div class="warn">Not available yet — nothing has been classified and no connections between
+systems have been recorded. Whoever maintains this can do both in the app, and this section
+will fill itself in.</div>
+{{else}}
+
+{{if .Doc.WindDown.Keep}}
+<h3 class="wd-keep">Leave these alone</h3>
+<p class="dim">The house needs these, or needs something that runs on top of them.</p>
+{{range .Doc.WindDown.Keep}}
+  {{template "winddown-item" .}}
+  {{if .EssentialBreaks}}
+  <p class="wd-warn">Switching this off would stop
+    <strong>{{range $i, $n := .EssentialBreaks}}{{if $i}}, {{end}}{{$n}}{{end}}</strong>,
+    which the household needs.</p>
+  {{end}}
+{{end}}
+{{end}}
+
+{{if .Doc.WindDown.Safe}}
+<h3 class="wd-safe">Safe to switch off</h3>
+<p class="dim">Nobody recorded these as needed, and nothing needed depends on them. If you are
+reducing what runs here, start at the bottom of this list.</p>
+{{range .Doc.WindDown.Safe}}{{template "winddown-item" .}}{{end}}
+{{end}}
+
+{{if .Doc.WindDown.Unknown}}
+<h3 class="wd-unknown">Ask before switching these off</h3>
+<p class="dim">Nobody wrote down whether the house needs these, so this guide will not guess.
+Ask whoever helps you with the technology.</p>
+{{range .Doc.WindDown.Unknown}}{{template "winddown-item" .}}{{end}}
+{{end}}
+
+{{end}}
 {{end}}
 
 {{/* One resource, technical framing. Used by the Administrator Guide and

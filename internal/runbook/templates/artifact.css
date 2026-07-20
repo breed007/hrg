@@ -94,3 +94,18 @@ footer p { margin: .3rem 0; }
 .imp-nice         { background: #eef1f6; color: #3d5a80; border: 1px solid #9db8dc; }
 .imp-experimental { background: #f2f2ee; color: #6a6a62; border: 1px solid #d8d8d2; }
 .tech-fallback { color: #555; }
+
+/* --- wind-down: what is safe to switch off --- */
+h3.wd-keep, h3.wd-safe, h3.wd-unknown {
+  margin-top: 1.6rem; padding-left: .6rem; border-left: 4px solid var(--line);
+}
+h3.wd-keep    { border-left-color: #22503b; }
+h3.wd-safe    { border-left-color: #9db8dc; }
+h3.wd-unknown { border-left-color: #c8a24a; }
+.wd-item { border-top: 1px solid var(--line); padding: .7rem 0; page-break-inside: avoid; }
+.wd-item:first-of-type { border-top: none; }
+.wd-breaks { margin: .3rem 0; }
+.wd-warn {
+  margin: .2rem 0 .8rem; padding: .5rem .7rem; border-radius: 5px;
+  background: #fdf6e3; border: 1px solid #c8a24a; color: #6b4e12; font-size: .92rem;
+}

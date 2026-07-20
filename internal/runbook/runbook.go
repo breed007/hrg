@@ -89,6 +89,9 @@ type Document struct {
 	BackupJobs []BackupEntry
 	Uncovered  []Entry // guests/containers with no backed_up_by edge
 
+	// WindDown answers "what can I switch off?" from the dependency graph.
+	WindDown WindDownPlan
+
 	Inventory []KindGroup // appendix: everything, orphans flagged
 	Runs      []store.RunRow
 	Coverage  *store.Coverage
@@ -181,6 +184,56 @@ type BackupEntry struct {
 type KindGroup struct {
 	Kind    model.Kind
 	Entries []Entry
+}
+
+// WindDown is one thing the household could switch off, with the cost of
+// doing so stated in names rather than in graph terms.
+type WindDown struct {
+	Entry
+	// Breaks names everything that stops working if this is switched off,
+	// transitively — the thing a reader cannot work out for themselves.
+	Breaks []string
+	// EssentialBreaks is the subset of Breaks the household marked as
+	// needed. Non-empty means "leave this alone" regardless of what the
+	// thing itself was classified as.
+	EssentialBreaks []string
+}
+
+// Inferred reports whether the consequence shown is HRG's inference rather
+// than the author's own words — renderers say so, because a guess about
+// what breaks deserves less trust than a sentence someone wrote.
+func (w WindDown) Inferred() bool { return w.SafeToOffMD == "" }
+
+// WindDownPlan sorts everything the household might switch off into the
+// three answers a person actually needs: don't, go ahead, and ask first.
+type WindDownPlan struct {
+	// Keep is essential, or something essential depends on it.
+	Keep []WindDown
+	// Safe is not needed and nothing needed depends on it.
+	Safe []WindDown
+	// Unknown is unclassified — nobody recorded whether the house needs it,
+	// so the guide must not claim either way.
+	Unknown []WindDown
+}
+
+// Empty reports whether there is nothing to say at all.
+func (p WindDownPlan) Empty() bool {
+	return len(p.Keep) == 0 && len(p.Safe) == 0 && len(p.Unknown) == 0
+}
+
+// breakingRelations are the edges that mean "the source stops working if
+// the destination goes away". member_of, resolves_to, located_in and
+// backed_up_by are excluded: losing a cluster membership or a DNS record
+// is not the same as losing the thing.
+var breakingRelations = map[model.Relation]bool{
+	model.RelRunsOn: true, model.RelDependsOn: true, model.RelAttachedTo: true,
+}
+
+// windDownKinds are the things a household reader could plausibly switch
+// off — services and the boxes they run on.
+var windDownKinds = map[model.Kind]bool{
+	model.KindService: true, model.KindContainer: true, model.KindVM: true,
+	model.KindLXC: true, model.KindHost: true, model.KindDevice: true,
 }
 
 // serviceKinds appear in the service catalog.
@@ -346,6 +399,8 @@ func Build(ctx context.Context, st *store.Store, title string) (*Document, error
 		}
 		return doc.Services[i].Name < doc.Services[j].Name
 	})
+
+	doc.WindDown = buildWindDown(resources, edges, byID, entry)
 
 	// Appendix: everything, grouped by kind, orphans included and flagged.
 	groups := map[model.Kind][]Entry{}

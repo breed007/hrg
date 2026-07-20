@@ -20,10 +20,66 @@ const marker = ".hrg-runbook"
 // Household Guide. Derived from the dependency graph so a reader can tell
 // what takes useful things with it.
 func windDownMD(doc *Document) string {
-	return "If you need to reduce or shut this down, some things can be switched off with no effect " +
-		"and others will take useful things with them.\n\n" +
-		"> ⚠ Not available yet — no dependency information has been recorded. Whoever maintains this " +
-		"can add relationships in the app so this section can be generated.\n"
+	var b strings.Builder
+	b.WriteString("If you need to reduce or shut things down — to save money, or because nobody is " +
+		"looking after this any more — some of it can be switched off with no effect, and some of it " +
+		"takes useful things with it. This section is worked out from how the systems actually connect.\n\n")
+
+	if doc.WindDown.Empty() {
+		b.WriteString("> ⚠ Not available yet — nothing has been classified and no connections between " +
+			"systems have been recorded. Whoever maintains this can do both in the app, and this " +
+			"section will fill itself in.\n")
+		return b.String()
+	}
+
+	item := func(w WindDown) {
+		fmt.Fprintf(&b, "#### %s", w.Name)
+		if l := w.ImportanceLabel(); l != "" {
+			fmt.Fprintf(&b, " — *%s*", l)
+		}
+		b.WriteString("\n\n")
+		if w.PlainEnglishMD != "" {
+			fmt.Fprintf(&b, "%s\n\n", w.PlainEnglishMD)
+		}
+		switch {
+		case w.SafeToOffMD != "":
+			fmt.Fprintf(&b, "%s\n\n", w.SafeToOffMD)
+		case len(w.Breaks) > 0:
+			fmt.Fprintf(&b, "Turning this off also stops: **%s**. (Worked out from how things "+
+				"connect — nobody has written this down.)\n\n", strings.Join(w.Breaks, ", "))
+		default:
+			b.WriteString("Nothing else appears to depend on this.\n\n")
+		}
+		if w.MonthlyCostMD != "" {
+			fmt.Fprintf(&b, "**Cost:** %s\n\n", w.MonthlyCostMD)
+		}
+		if len(w.EssentialBreaks) > 0 {
+			fmt.Fprintf(&b, "> ⚠ Switching this off would stop **%s**, which the household needs.\n\n",
+				strings.Join(w.EssentialBreaks, ", "))
+		}
+	}
+
+	group := func(heading, blurb string, items []WindDown) {
+		if len(items) == 0 {
+			return
+		}
+		fmt.Fprintf(&b, "### %s\n\n%s\n\n", heading, blurb)
+		for _, w := range items {
+			item(w)
+		}
+	}
+	group("Leave these alone",
+		"The house needs these, or needs something that runs on top of them.",
+		doc.WindDown.Keep)
+	group("Safe to switch off",
+		"Nobody recorded these as needed, and nothing needed depends on them. If you are "+
+			"reducing what runs here, start at the bottom of this list.",
+		doc.WindDown.Safe)
+	group("Ask before switching these off",
+		"Nobody wrote down whether the house needs these, so this guide will not guess. "+
+			"Ask whoever helps you with the technology.",
+		doc.WindDown.Unknown)
+	return b.String()
 }
 
 // RenderMarkdown produces the git-committable file tree as path → content.
@@ -93,7 +149,12 @@ func RenderMarkdown(doc *Document) map[string][]byte {
 		b.WriteString("\n")
 	}
 
-	b.WriteString("## 5. What each thing does\n\nListed with the things the house actually needs first.\n\n")
+	b.WriteString("## 5. What each thing does\n\n")
+	if len(doc.Services) == 0 {
+		b.WriteString("No software services have been recorded — the equipment in this home is listed under *Where the equipment is* above.\n\n")
+	} else {
+		b.WriteString("Listed with the things the house actually needs first.\n\n")
+	}
 	for _, e := range doc.Services {
 		fmt.Fprintf(&b, "### %s", mdCell(e.Name))
 		if l := e.ImportanceLabel(); l != "" {
