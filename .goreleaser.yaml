@@ -72,5 +72,8 @@ release:
   header: |
     ## HRG {{ .Tag }}
 
-    Self-hosted homelab runbook generator. See the README for the
-    docker-compose quickstart.
+    Home Runbook Generator — documents your home's technology and
+    produces two guides: a plain-language **Household Guide** for the
+    people who live there, and an **Administrator Guide** for whoever
+    does the technical work. See the README for the docker-compose
+    quickstart.
