@@ -12,63 +12,82 @@
   <text x="26" y="82" font-size="20" font-weight="800" fill="#7fc9a2" letter-spacing="2">HRG</text>
   <g font-size="13.5" fill="#cfd2ca">
     <text x="92" y="82">Resources</text><text x="182" y="82">Map</text><text x="228" y="82">IP plan</text>
-    <text x="296" y="82">Runbook</text><text x="372" y="82">Runs</text><text x="422" y="82">Collectors</text><text x="512" y="82">Settings</text>
+    <text x="296" y="82">Runbook</text><text x="372" y="82">Destinations</text><text x="472" y="82">Runs</text>
+    <text x="522" y="82">Collectors</text><text x="612" y="82">Settings</text>
   </g>
   <rect x="900" y="66" width="116" height="26" rx="6" fill="#7fc9a2"/>
   <text x="958" y="83" font-size="12.5" font-weight="600" fill="#0f110e" text-anchor="middle">Collect now</text>
   <line x1="0" y1="104" x2="1040" y2="104" stroke="#242822"/>
 
-  <text x="26" y="146" font-size="26" font-weight="800" fill="#f0f0ea">Dashboard</text>
+  <text x="26" y="142" font-size="26" font-weight="800" fill="#f0f0ea">Dashboard</text>
 
   <!-- stat cards -->
   <g>
-    <rect x="26"  y="168" width="150" height="86" rx="10" fill="#171a15" stroke="#242822"/>
-    <text x="44" y="216" font-size="34" font-weight="800" fill="#f0f0ea">37</text>
-    <text x="44" y="238" font-size="12" fill="#9a9a92">resources</text>
-    <rect x="188" y="168" width="150" height="86" rx="10" fill="#171a15" stroke="#242822"/>
-    <text x="206" y="216" font-size="34" font-weight="800" fill="#e3b35c">1</text>
-    <text x="206" y="238" font-size="12" fill="#9a9a92">orphaned — review</text>
-    <rect x="350" y="168" width="150" height="86" rx="10" fill="#171a15" stroke="#242822"/>
-    <text x="368" y="216" font-size="34" font-weight="800" fill="#f0f0ea">6</text>
-    <text x="368" y="238" font-size="12" fill="#9a9a92">collectors</text>
+    <rect x="26"  y="160" width="150" height="74" rx="10" fill="#171a15" stroke="#242822"/>
+    <text x="44" y="200" font-size="30" font-weight="800" fill="#f0f0ea">37</text>
+    <text x="44" y="222" font-size="12" fill="#9a9a92">resources</text>
+    <rect x="188" y="160" width="150" height="74" rx="10" fill="#171a15" stroke="#242822"/>
+    <text x="206" y="200" font-size="30" font-weight="800" fill="#e3b35c">1</text>
+    <text x="206" y="222" font-size="12" fill="#9a9a92">orphaned — review</text>
+    <rect x="350" y="160" width="150" height="74" rx="10" fill="#171a15" stroke="#242822"/>
+    <text x="368" y="200" font-size="30" font-weight="800" fill="#f0f0ea">6</text>
+    <text x="368" y="222" font-size="12" fill="#9a9a92">collectors</text>
   </g>
 
-  <!-- coverage -->
-  <text x="26" y="292" font-size="16" font-weight="700" fill="#e8e8e2">Runbook coverage</text>
+  <!-- household readiness -->
+  <text x="26" y="272" font-size="16" font-weight="700" fill="#e8e8e2">Household Guide readiness</text>
+  <text x="26" y="292" font-size="12" fill="#9a9a92">Could someone who didn't build this house run it tomorrow?</text>
   <g font-size="13">
-    <text x="26" y="326" fill="#d7dad2" font-weight="600">Purpose documented</text>
-    <rect x="330" y="316" width="470" height="10" rx="5" fill="#242822"/>
-    <rect x="330" y="316" width="150" height="10" rx="5" fill="#7fc9a2"/>
-    <text x="820" y="326" fill="#9a9a92">12 / 37</text>
-    <text x="900" y="326" fill="#7fc9a2">show missing</text>
+    <text x="26" y="322" fill="#d7dad2" font-weight="600">Sorted into essential / nice / just a project</text>
+    <rect x="380" y="312" width="420" height="10" rx="5" fill="#242822"/>
+    <rect x="380" y="312" width="252" height="10" rx="5" fill="#7fc9a2"/>
+    <text x="826" y="322" fill="#9a9a92">22 / 37</text>
+    <text x="900" y="322" fill="#7fc9a2">show unsorted</text>
 
-    <text x="26" y="356" fill="#d7dad2" font-weight="600">Recovery steps</text>
-    <rect x="330" y="346" width="470" height="10" rx="5" fill="#242822"/>
-    <rect x="330" y="346" width="80" height="10" rx="5" fill="#e3b35c"/>
-    <text x="820" y="356" fill="#9a9a92">3 / 19</text>
-    <text x="900" y="356" fill="#7fc9a2">show missing</text>
-
-    <text x="26" y="386" fill="#d7dad2" font-weight="600">Backups restore-tested</text>
-    <rect x="330" y="376" width="470" height="10" rx="5" fill="#242822"/>
-    <rect x="330" y="376" width="235" height="10" rx="5" fill="#7fc9a2"/>
-    <text x="820" y="386" fill="#9a9a92">1 / 2</text>
+    <text x="26" y="352" fill="#d7dad2" font-weight="600">Essential things explained in plain English</text>
+    <rect x="380" y="342" width="420" height="10" rx="5" fill="#242822"/>
+    <rect x="380" y="342" width="210" height="10" rx="5" fill="#e3b35c"/>
+    <text x="826" y="352" fill="#9a9a92">3 / 6</text>
+    <text x="900" y="352" fill="#7fc9a2">show missing</text>
   </g>
-  <text x="26" y="418" font-size="12" fill="#9a9a92">A stressed reader needs the <tspan font-style="italic">why</tspan> and the <tspan font-style="italic">how</tspan>, not just the inventory. HRG nags until you fill the gaps.</text>
+  <rect x="26" y="366" width="404" height="22" rx="4" fill="#3a2f14"/>
+  <text x="38" y="382" font-size="12" fill="#e3b35c">3 of your 6 essential systems have no plain-English description</text>
+  <text x="444" y="382" font-size="12" fill="#9a9a92">— a sentence you can act on.</text>
+
+  <!-- administrator readiness -->
+  <text x="26" y="428" font-size="16" font-weight="700" fill="#e8e8e2">Administrator Guide readiness</text>
+  <g font-size="13">
+    <text x="26" y="458" fill="#d7dad2" font-weight="600">Purpose documented</text>
+    <rect x="380" y="448" width="420" height="10" rx="5" fill="#242822"/>
+    <rect x="380" y="448" width="136" height="10" rx="5" fill="#7fc9a2"/>
+    <text x="826" y="458" fill="#9a9a92">12 / 37</text>
+    <text x="900" y="458" fill="#7fc9a2">show missing</text>
+
+    <text x="26" y="488" fill="#d7dad2" font-weight="600">Recovery steps</text>
+    <rect x="380" y="478" width="420" height="10" rx="5" fill="#242822"/>
+    <rect x="380" y="478" width="70" height="10" rx="5" fill="#e3b35c"/>
+    <text x="826" y="488" fill="#9a9a92">3 / 19</text>
+    <text x="900" y="488" fill="#7fc9a2">show missing</text>
+
+    <text x="26" y="518" fill="#d7dad2" font-weight="600">Backups restore-tested</text>
+    <rect x="380" y="508" width="420" height="10" rx="5" fill="#242822"/>
+    <rect x="380" y="508" width="210" height="10" rx="5" fill="#7fc9a2"/>
+    <text x="826" y="518" fill="#9a9a92">1 / 2</text>
+  </g>
+
+  <!-- copies off this machine -->
+  <text x="26" y="566" font-size="16" font-weight="700" fill="#e8e8e2">Copies off this machine</text>
+  <rect x="26" y="580" width="988" height="40" rx="8" fill="#3a2f14" stroke="#e3b35c"/>
+  <text x="44" y="605" font-size="13" fill="#e8e8e2"><tspan font-weight="700">The last copy left on 2026-06-14</tspan> via Partner's inbox — over a month ago.
+    <tspan fill="#9a9a92">Whatever has changed here since then exists in one place.</tspan></text>
 
   <!-- collector health -->
-  <text x="26" y="462" font-size="16" font-weight="700" fill="#e8e8e2">Collector health</text>
-  <line x1="26" y1="476" x2="1014" y2="476" stroke="#242822"/>
+  <text x="26" y="656" font-size="16" font-weight="700" fill="#e8e8e2">Collector health</text>
+  <line x1="26" y1="668" x2="1014" y2="668" stroke="#242822"/>
   <g font-size="13" fill="#cfd2ca">
-    <text x="26" y="504">proxmox:pve1</text>  <rect x="200" y="492" width="34" height="18" rx="4" fill="#1d3327"/><text x="217" y="505" fill="#7fc9a2" text-anchor="middle" font-size="11">ok</text>  <text x="280" y="504" fill="#8a8f86">2 min ago</text>
-    <line x1="26" y1="518" x2="1014" y2="518" stroke="#1f231d"/>
-    <text x="26" y="544">docker:nas</text>     <rect x="200" y="532" width="34" height="18" rx="4" fill="#1d3327"/><text x="217" y="545" fill="#7fc9a2" text-anchor="middle" font-size="11">ok</text>  <text x="280" y="544" fill="#8a8f86">2 min ago</text>
-    <line x1="26" y1="558" x2="1014" y2="558" stroke="#1f231d"/>
-    <text x="26" y="584">unifi:home</text>     <rect x="200" y="572" width="34" height="18" rx="4" fill="#1d3327"/><text x="217" y="585" fill="#7fc9a2" text-anchor="middle" font-size="11">ok</text>  <text x="280" y="584" fill="#8a8f86">2 min ago</text>
-    <line x1="26" y1="598" x2="1014" y2="598" stroke="#1f231d"/>
-    <text x="26" y="624">netbox:main</text>    <rect x="200" y="612" width="50" height="18" rx="4" fill="#3c2020"/><text x="225" y="625" fill="#e08a8a" text-anchor="middle" font-size="11">error</text>  <text x="280" y="624" fill="#e08a8a" font-size="12">401 Unauthorized — token expired</text>
+    <text x="26" y="694">netbox:main</text>
+    <rect x="200" y="682" width="50" height="18" rx="4" fill="#3c2020"/>
+    <text x="225" y="695" fill="#e08a8a" text-anchor="middle" font-size="11">error</text>
+    <text x="280" y="694" fill="#e08a8a" font-size="12">401 Unauthorized — token expired</text>
   </g>
-
-  <!-- setup banner ghost -->
-  <rect x="26" y="656" width="988" height="40" rx="8" fill="#14231b" stroke="#2f6f4f"/>
-  <text x="44" y="681" font-size="13" fill="#cfd2ca">👋 New here? Run the <tspan fill="#7fc9a2" font-weight="600">setup wizard</tspan> to get from empty to a first runbook in five steps.</text>
 </svg>

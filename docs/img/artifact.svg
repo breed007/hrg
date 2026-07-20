@@ -1,39 +1,56 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 720" width="900" height="720" font-family="Georgia, 'Times New Roman', serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 780" width="900" height="780" font-family="Georgia, 'Times New Roman', serif">
   <!-- paper -->
-  <rect width="900" height="720" rx="10" fill="#ffffff"/>
-  <rect x="1" y="1" width="898" height="718" rx="9" fill="none" stroke="#d8d8d2"/>
+  <rect width="900" height="780" rx="10" fill="#ffffff"/>
+  <rect x="1" y="1" width="898" height="778" rx="9" fill="none" stroke="#d8d8d2"/>
 
   <!-- header -->
-  <text x="54" y="74" font-size="34" font-weight="800" fill="#1a1a18" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Homelab Runbook</text>
-  <text x="54" y="102" font-size="13" fill="#666">Generated July 11, 2026 · self-contained — it works with the network down.</text>
-  <text x="54" y="120" font-size="13" fill="#666">A map of this home's infrastructure: <tspan font-weight="700" fill="#1a1a18">store it as carefully as a spare key.</tspan></text>
+  <text x="54" y="72" font-size="32" font-weight="800" fill="#1a1a18" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Our Home's Technology</text>
+  <text x="54" y="98" font-size="14" font-weight="700" fill="#22503b" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" letter-spacing="1.5">HOUSEHOLD GUIDE</text>
+  <text x="54" y="124" font-size="13" fill="#666">This explains the technology in this home in plain language. You do not need</text>
+  <text x="54" y="142" font-size="13" fill="#666">to be technical to use it.</text>
 
-  <line x1="54" y1="150" x2="846" y2="150" stroke="#22503b" stroke-width="3"/>
-  <text x="54" y="188" font-size="22" font-weight="700" fill="#22503b" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">1 · START HERE</text>
+  <line x1="54" y1="166" x2="846" y2="166" stroke="#22503b" stroke-width="3"/>
 
-  <!-- boxed triage -->
-  <rect x="54" y="206" width="792" height="404" rx="10" fill="#ffffff" stroke="#22503b" stroke-width="2"/>
-  <text x="80" y="250" font-size="26" font-weight="800" fill="#1a1a18" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">START HERE</text>
-  <text x="80" y="278" font-size="15" font-style="italic" fill="#444">(Stay calm — most fixes are power cycles.)</text>
+  <!-- section 2, boxed triage -->
+  <text x="54" y="200" font-size="20" font-weight="700" fill="#22503b" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">2 · If something is broken</text>
 
-  <text x="80" y="322" font-size="17" font-weight="700" fill="#22503b" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">The internet is down</text>
+  <rect x="54" y="216" width="792" height="248" rx="10" fill="#ffffff" stroke="#22503b" stroke-width="2"/>
+  <text x="80" y="252" font-size="15" font-style="italic" fill="#444">(Stay calm — most fixes are power cycles.)</text>
+
+  <text x="80" y="292" font-size="17" font-weight="700" fill="#22503b" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">The internet is down</text>
   <g font-size="15" fill="#1a1a18">
-    <text x="80" y="352">1.  Go to the <tspan font-weight="700">basement network closet</tspan> (down the stairs, first door left).</text>
-    <text x="80" y="380">2.  Unplug the <tspan font-weight="700">cable modem</tspan> (top shelf), wait 30 seconds, plug back in.</text>
-    <text x="80" y="408">3.  Wait ~2 minutes. Blue lights = good.</text>
-    <text x="80" y="436">4.  Still down after 15 min? Call the ISP — number on the contacts page.</text>
+    <text x="80" y="322">1.  Go to the <tspan font-weight="700">basement network closet</tspan> (down the stairs, first door left).</text>
+    <text x="80" y="350">2.  Unplug the <tspan font-weight="700">cable modem</tspan> (top shelf), wait 30 seconds, plug back in.</text>
+    <text x="80" y="378">3.  Wait ~2 minutes. Blue lights = good.</text>
   </g>
 
-  <text x="80" y="478" font-size="17" font-weight="700" fill="#22503b" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">The TV / Plex doesn't work</text>
-  <g font-size="15" fill="#1a1a18">
-    <text x="80" y="508">1.  Internet working on your phone? If not, see above.</text>
-    <text x="80" y="536">2.  Plex runs on the <tspan font-weight="700">docker-host</tspan> VM — restart it, or power-cycle</text>
-    <text x="104" y="558">the big server in the rack (hold power 5s, wait, press again).</text>
-  </g>
+  <text x="80" y="418" font-size="17" font-weight="700" fill="#22503b" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">The TV / Plex doesn't work</text>
+  <text x="80" y="446" font-size="15" fill="#1a1a18">1.  Internet working on your phone? If not, see above.</text>
 
-  <text x="80" y="600" font-size="17" font-weight="700" fill="#22503b" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Something is beeping</text>
+  <!-- section 6, wind-down -->
+  <text x="54" y="504" font-size="20" font-weight="700" fill="#22503b" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">6 · Turning things off safely</text>
+
+  <rect x="54" y="522" width="4" height="18" rx="2" fill="#22503b"/>
+  <text x="68" y="537" font-size="15" font-weight="700" fill="#1a1a18" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Leave these alone</text>
+
+  <g font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+    <!-- item 1 -->
+    <text x="54" y="572" font-size="15" font-weight="700" fill="#1a1a18">Cable modem</text>
+    <rect x="168" y="559" width="150" height="18" rx="9" fill="#dcefe3" stroke="#22503b"/>
+    <text x="178" y="572" font-size="11" font-weight="700" fill="#1c4d38">The house needs this</text>
+    <text x="54" y="594" font-size="14" fill="#444" font-family="Georgia, serif">The box that brings the internet into the house.</text>
+
+    <!-- item 2 — the interesting one -->
+    <text x="54" y="632" font-size="15" font-weight="700" fill="#1a1a18">UPS (battery backup)</text>
+    <rect x="236" y="619" width="86" height="18" rx="9" fill="#eef1f6" stroke="#9db8dc"/>
+    <text x="246" y="632" font-size="11" font-weight="700" fill="#3d5a80">Nice to have</text>
+    <text x="54" y="654" font-size="14" fill="#444" font-family="Georgia, serif">Turning this off also stops: <tspan font-weight="700" fill="#1a1a18">Cable modem, ISP account</tspan></text>
+    <text x="54" y="674" font-size="12.5" fill="#888" font-family="Georgia, serif">(worked out from how things connect — nobody has written this down)</text>
+
+    <rect x="54" y="686" width="600" height="30" rx="5" fill="#fdf6e3" stroke="#c8a24a"/>
+    <text x="66" y="705" font-size="13.5" fill="#6b4e12">Switching this off would stop <tspan font-weight="700">Cable modem</tspan>, which the household needs.</text>
+  </g>
 
   <!-- footer note -->
-  <text x="54" y="654" font-size="13" fill="#666" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Followed by: contacts &amp; accounts · physical layer · network map · service catalog · backup &amp; restore · full appendix.</text>
-  <text x="54" y="688" font-size="12.5" fill="#888" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">The hand-authored triage page is written for a stressed non-expert first, an engineer second. HRG nags you until it exists.</text>
+  <text x="54" y="748" font-size="12.5" fill="#888" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Marked only "nice to have" — but kept, because something essential runs on it. That inference is the point of the section.</text>
 </svg>
