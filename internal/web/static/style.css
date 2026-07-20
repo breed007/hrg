@@ -173,3 +173,30 @@ textarea {
 @media (max-width: 50rem) { .guide-cards { grid-template-columns: 1fr; } }
 .guide-card { border: 1px solid var(--line); border-radius: 8px; padding: .9rem 1.1rem; }
 .guide-card h3 { margin: 0 0 .3rem; }
+
+/* --- destinations: getting copies off this machine --- */
+.banner-warn { background: var(--warn-bg); border-color: var(--warn-fg); }
+.banner-err  { background: var(--err-bg, #3a1d1d); border-color: var(--err-fg, #e08c8c); }
+.banner-ok   { background: var(--ok-bg); border-color: var(--accent); }
+.lede { color: var(--dim); max-width: 46rem; }
+.kind-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; }
+.kind-card {
+  display: block; border: 1px solid var(--line); border-radius: 8px;
+  padding: .9rem 1rem; text-decoration: none; color: inherit;
+}
+.kind-card:hover { border-color: var(--accent); }
+.kind-card h3 { margin: 0 0 .3rem; }
+.kind-card p { margin: 0; color: var(--dim); font-size: .88rem; }
+.dest-form { max-width: 40rem; }
+.dest-form label { display: block; margin: .9rem 0; font-weight: 600; }
+.dest-form label.check { font-weight: 400; display: flex; gap: .5rem; align-items: baseline; }
+.dest-form input[type=text], .dest-form input:not([type]), .dest-form input[type=password] {
+  display: block; width: 100%; margin-top: .3rem; padding: .45rem .6rem;
+  background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 6px;
+}
+.dest-form .help { display: block; font-weight: 400; font-size: .82rem; color: var(--dim); margin-top: .25rem; }
+.dest-form label.check .help { display: inline; margin: 0; }
+.dest-form fieldset { border: 1px solid var(--line); border-radius: 8px; padding: .6rem 1rem 1rem; margin: 1.2rem 0; }
+.dest-form legend { padding: 0 .4rem; font-weight: 700; font-size: .85rem; color: var(--dim); text-transform: uppercase; letter-spacing: .04em; }
+.req { color: var(--warn-fg); }
+.row-actions { display: flex; gap: .5rem; align-items: center; white-space: nowrap; }

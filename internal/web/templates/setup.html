@@ -1,6 +1,6 @@
 {{define "content"}}
 <h1>Welcome to HRG</h1>
-<p class="dim">Let's get your homelab's "hit by a bus" document started. The whole point is a runbook that works when the network is down — readable by a spouse, a friend, or future-you. Five quick steps.</p>
+<p class="dim">Let's get your homelab's "hit by a bus" document started. The whole point is a runbook that works when the network is down — readable by a spouse, a friend, or future-you. Six quick steps.</p>
 {{if .Err}}<p class="form-error">{{.Err}}</p>{{end}}
 
 <ol class="wizard">
@@ -55,6 +55,22 @@
     <p class="add-row">
       <a class="btn" href="/runbook">Go to Runbook</a>
     </p>
+  </li>
+  <li>
+    <h3>6 · Send a copy somewhere else
+      {{if .HasDelivered}}<span class="badge badge-ok">done</span>
+      {{else if .DestCount}}<span class="badge badge-warn">configured, never sent</span>{{end}}</h3>
+    <p class="dim">This is the step that decides whether any of the rest matters. A runbook that
+    only exists on the machine it documents is missing in most of the situations it was written
+    for — the server is dead, the house was sold, or the person who built it is gone.</p>
+    <p class="dim">Pick at least two that fail differently: a folder your cloud drive syncs, and
+    an inbox that doesn't depend on this house at all.</p>
+    <p class="add-row">
+      {{range .DestKinds}}<a class="btn" href="/destinations?type={{.Type}}">{{.Label}}</a>{{end}}
+    </p>
+    {{if .DestCount}}<p class="dim">Then use <strong>Send now</strong> on the
+    <a href="/destinations">Destinations</a> page and confirm it actually arrived — that's the
+    half HRG can't verify for you.</p>{{end}}
   </li>
 </ol>
 

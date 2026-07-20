@@ -27,6 +27,20 @@ type ConfigBackup struct {
 	Annotations  []AnnotationDump      `json:"annotations"`
 	ManualEdges  []ManualEdgeDump      `json:"manual_edges"`
 	BackupChecks []BackupCheckDump     `json:"backup_checks"`
+	// Destinations carry sealed credentials like collectors do. Omitting
+	// them would mean a restored HRG quietly stops delivering — the one
+	// failure the user would never think to check for.
+	Destinations []DestinationDump `json:"destinations,omitempty"`
+}
+
+type DestinationDump struct {
+	Type    string          `json:"type"`
+	Name    string          `json:"name"`
+	Config  json.RawMessage `json:"config"`
+	Secret  []byte          `json:"secret,omitempty"` // sealed
+	Guides  []string        `json:"guides"`
+	Formats []string        `json:"formats"`
+	Enabled bool            `json:"enabled"`
 }
 
 type CollectorConfigDump struct {
@@ -83,6 +97,17 @@ func (s *Store) ExportConfig(ctx context.Context, generatedAt string) (*ConfigBa
 	for _, c := range cfgs {
 		b.Collectors = append(b.Collectors, CollectorConfigDump{
 			Type: c.Type, Name: c.Name, Config: c.Config, Secret: c.Secret, Enabled: c.Enabled,
+		})
+	}
+
+	dests, err := s.ListDestinations(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, d := range dests {
+		b.Destinations = append(b.Destinations, DestinationDump{
+			Type: d.Type, Name: d.Name, Config: d.Config, Secret: d.Secret,
+			Guides: d.Guides, Formats: d.Formats, Enabled: d.Enabled,
 		})
 	}
 
@@ -167,6 +192,12 @@ func (s *Store) ImportConfig(ctx context.Context, b *ConfigBackup) (warnings []s
 	for _, c := range b.Collectors {
 		if err := s.upsertCollectorConfig(ctx, c); err != nil {
 			return warnings, fmt.Errorf("collector %s:%s: %w", c.Type, c.Name, err)
+		}
+	}
+
+	for _, d := range b.Destinations {
+		if err := s.upsertDestination(ctx, d); err != nil {
+			warnings = append(warnings, fmt.Sprintf("destination %q: %v", d.Name, err))
 		}
 	}
 

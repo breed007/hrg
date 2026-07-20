@@ -1,0 +1,157 @@
+{{define "content"}}
+<h1>Destinations</h1>
+<p class="lede">Where copies of the runbook go. Everything else in HRG is preparation for this
+page: a guide that only exists on this machine is missing in exactly the situations it was
+written for.</p>
+
+{{if .Err}}<div class="banner banner-err"><strong>Didn't work:</strong> {{.Err}}</div>{{end}}
+{{if .Sent}}<div class="banner banner-ok"><strong>Sent</strong> to {{.Sent}}. Go and check it arrived — that's the half HRG can't do.</div>{{end}}
+
+{{if .LastGood}}
+<p class="dim">A copy last left this machine <strong>{{.LastGood.CreatedAt}}</strong> via {{.LastGood.Name}}.</p>
+{{else}}
+<div class="banner banner-warn">
+  <strong>No copy has ever left this machine.</strong> Everything documented here is currently
+  one disk failure away from being gone. Add a destination below — the sync folder takes about
+  thirty seconds and needs no password.
+</div>
+{{end}}
+
+{{if .Destinations}}
+<table>
+  <thead><tr><th>Name</th><th>Type</th><th>Goes to</th><th>Sends</th><th>Last attempt</th><th></th></tr></thead>
+  <tbody>
+  {{range .Destinations}}
+    <tr>
+      <td><strong>{{.Name}}</strong>{{if not .Enabled}} <span class="badge">paused</span>{{end}}</td>
+      <td>{{if .Kind.Label}}{{.Kind.Label}}{{else}}<span class="badge badge-err">unknown ({{.Type}})</span>{{end}}</td>
+      <td class="dim">{{.Summary}}</td>
+      <td class="dim">
+        {{range .Guides}}{{if eq . "household"}}Household{{else}}Administrator{{end}} {{end}}
+        · {{range .Formats}}{{.}} {{end}}
+      </td>
+      <td>
+        {{if .Last}}
+          {{if .Last.OK}}<span class="badge badge-ok">ok</span>{{else}}<span class="badge badge-err">failed</span>{{end}}
+          <span class="dim">{{.Last.CreatedAt}}</span>
+          {{if not .Last.OK}}<div class="dim">{{.Last.Detail}}</div>{{end}}
+        {{else}}<span class="badge badge-warn">never tried</span>{{end}}
+      </td>
+      <td class="row-actions">
+        <form method="post" action="/destinations/{{.ID}}/test" class="inline">
+          <button type="submit">Send now</button>
+        </form>
+        <a href="/destinations?edit={{.ID}}">Edit</a>
+        <form method="post" action="/destinations/{{.ID}}/delete" class="inline"
+              onsubmit="return confirm('Delete this destination? Existing copies already sent are not touched.')">
+          <button type="submit" class="btn-danger btn-small">×</button>
+        </form>
+      </td>
+    </tr>
+  {{end}}
+  </tbody>
+</table>
+{{end}}
+
+{{if .Edit}}
+  {{template "destination-form" dict2 "Kind" .EditKind "Dest" .Edit "Config" .EditConfig}}
+{{else if .ShowForm}}
+  {{template "destination-form" dict2 "Kind" .AddKind "Dest" nil "Config" nil}}
+{{else}}
+<h2>Add a destination</h2>
+<p class="dim">Pick more than one. Two destinations that fail differently — a folder that syncs
+and an inbox that doesn't depend on this house at all — is the whole idea.</p>
+<div class="kind-cards">
+{{range .Kinds}}
+  <a class="kind-card" href="/destinations?type={{.Type}}">
+    <h3>{{.Label}}</h3>
+    <p>{{.Blurb}}</p>
+  </a>
+{{end}}
+</div>
+{{end}}
+
+{{if .Deliveries}}
+<h2>Delivery history</h2>
+<table>
+  <thead><tr><th>When</th><th>Destination</th><th>Result</th><th>Detail</th></tr></thead>
+  <tbody>
+  {{range .Deliveries}}
+    <tr>
+      <td class="dim">{{.CreatedAt}}</td>
+      <td>{{.Name}}</td>
+      <td>{{if .OK}}<span class="badge badge-ok">ok</span>{{else}}<span class="badge badge-err">error</span>{{end}}</td>
+      <td class="dim">{{.Detail}}</td>
+    </tr>
+  {{end}}
+  </tbody>
+</table>
+{{end}}
+{{end}}
+
+{{define "destination-form"}}
+<h2>{{if .Dest}}Edit {{.Dest.Name}}{{else}}{{.Kind.Label}}{{end}}</h2>
+<p class="dim">{{.Kind.Blurb}}</p>
+<form method="post" action="/destinations" class="dest-form">
+  <input type="hidden" name="type" value="{{.Kind.Type}}">
+  {{if .Dest}}<input type="hidden" name="id" value="{{.Dest.ID}}">{{end}}
+
+  <label>Name
+    <input name="name" value="{{if .Dest}}{{.Dest.Name}}{{else}}{{.Kind.Label}}{{end}}" required>
+    <span class="help">What you'll call it on this page.</span>
+  </label>
+
+  {{$cfg := .Config}}
+  {{range .Kind.Fields}}
+  <label>{{.Label}}{{if .Required}} <span class="req">*</span>{{end}}
+    <input name="cfg_{{.Key}}" placeholder="{{.Placeholder}}"
+           value="{{if $cfg}}{{index $cfg .Key}}{{end}}" {{if .Required}}required{{end}}>
+    {{if .Help}}<span class="help">{{.Help}}</span>{{end}}
+  </label>
+  {{end}}
+
+  {{if .Kind.NeedsSecret}}
+  <label>{{.Kind.SecretLabel}}
+    <input name="secret" type="password" autocomplete="new-password"
+           placeholder="{{if .Dest}}unchanged — type to replace{{end}}">
+    <span class="help">Stored encrypted with your key file, never in the database in the clear.
+      {{if .Dest}}Leave blank to keep the current one.{{end}}</span>
+  </label>
+  {{end}}
+
+  <fieldset>
+    <legend>Which guide</legend>
+    {{$g := ""}}{{if .Dest}}{{$g = .Dest.Guides}}{{end}}
+    <label class="check"><input type="checkbox" name="guides" value="household"
+      {{if .Dest}}{{if hasStr $g "household"}}checked{{end}}{{else}}checked{{end}}>
+      Household Guide <span class="help">The one a partner or survivor needs.</span></label>
+    <label class="check"><input type="checkbox" name="guides" value="administrator"
+      {{if .Dest}}{{if hasStr $g "administrator"}}checked{{end}}{{else}}checked{{end}}>
+      Administrator Guide <span class="help">The technical one. Think about whether this
+      destination should hold a map of your network.</span></label>
+  </fieldset>
+
+  <fieldset>
+    <legend>Which format</legend>
+    {{$f := ""}}{{if .Dest}}{{$f = .Dest.Formats}}{{end}}
+    <label class="check"><input type="checkbox" name="formats" value="pdf"
+      {{if .Dest}}{{if hasStr $f "pdf"}}checked{{end}}{{else}}checked{{end}}>
+      PDF <span class="help">Opens on any phone with no app, previews inside email, prints.
+      The right default for the Household Guide. Needs Chrome installed and
+      <em>Also render PDF</em> enabled on the Runbook page.</span></label>
+    <label class="check"><input type="checkbox" name="formats" value="html"
+      {{if .Dest}}{{if hasStr $f "html"}}checked{{end}}{{else}}checked{{end}}>
+      HTML <span class="help">One self-contained file. Always generated, and the only format
+      where the network diagram is readable.</span></label>
+  </fieldset>
+
+  <label class="check"><input type="checkbox" name="enabled" value="1"
+    {{if .Dest}}{{if .Dest.Enabled}}checked{{end}}{{else}}checked{{end}}>
+    Send here every time the runbook is generated</label>
+
+  <div class="form-actions">
+    <button type="submit">Save destination</button>
+    <a href="/destinations">Cancel</a>
+  </div>
+</form>
+{{end}}

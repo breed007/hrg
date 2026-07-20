@@ -70,6 +70,16 @@ func NewServer(st *store.Store, key *secrets.Key, static []collector.Collector, 
 	md := goldmark.New(goldmark.WithExtensions(extension.GFM))
 	funcs := template.FuncMap{
 		"sub": func(a, b int) int { return a - b },
+		// hasStr reports membership — used for pre-checking the guide and
+		// format boxes on the destination form.
+		"hasStr": func(ss []string, want string) bool {
+			for _, v := range ss {
+				if v == want {
+					return true
+				}
+			}
+			return false
+		},
 		"json": func(v any) string {
 			b, err := json.Marshal(v)
 			if err != nil {
@@ -101,7 +111,7 @@ func NewServer(st *store.Store, key *secrets.Key, static []collector.Collector, 
 		},
 	}
 	partials := []string{"templates/layout.html", "templates/run-table.html", "templates/resource-table.html", "templates/annotation-block.html"}
-	for _, page := range []string{"dashboard", "resources", "resource", "runs", "run", "collectors", "collector-form", "map", "ipplan", "orphans", "runbook", "login", "settings", "setup"} {
+	for _, page := range []string{"dashboard", "resources", "resource", "runs", "run", "collectors", "collector-form", "map", "ipplan", "orphans", "runbook", "login", "settings", "setup", "destinations"} {
 		t, err := template.New("layout").Funcs(funcs).ParseFS(templateFS,
 			append(partials, "templates/"+page+".html")...)
 		if err != nil {
@@ -140,6 +150,10 @@ func NewServer(st *store.Store, key *secrets.Key, static []collector.Collector, 
 	mux.HandleFunc("POST /resources/{id}/backup-check", s.handleBackupCheck)
 	mux.HandleFunc("POST /collectors/test", s.handleCollectorTest)
 	mux.HandleFunc("POST /runbook/notify-test", s.handleNotifyTest)
+	mux.HandleFunc("GET /destinations", s.handleDestinations)
+	mux.HandleFunc("POST /destinations", s.handleDestinationSave)
+	mux.HandleFunc("POST /destinations/{id}/delete", s.handleDestinationDelete)
+	mux.HandleFunc("POST /destinations/{id}/test", s.handleDestinationTest)
 	// Auth, settings, setup, health, and config backup/restore.
 	mux.HandleFunc("GET /login", s.handleLogin)
 	mux.HandleFunc("POST /login", s.handleLogin)
@@ -317,8 +331,16 @@ func (s *Server) buildCollector(cfg store.CollectorConfig) (collector.Collector,
 }
 
 func (s *Server) render(w http.ResponseWriter, page, name string, data any) {
+	t, ok := s.pages[page]
+	if !ok {
+		// A page added to a handler but not to the parse list above. A
+		// programming error — but one that must not panic a live server.
+		s.log.Error("render: unknown page template", "page", page)
+		http.Error(w, "template not found", http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := s.pages[page].ExecuteTemplate(w, name, data); err != nil {
+	if err := t.ExecuteTemplate(w, name, data); err != nil {
 		s.log.Error("render failed", "page", page, "err", err)
 	}
 }
@@ -368,6 +390,16 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, err)
 		return
 	}
+	lastDelivery, err := s.store.LastGoodDelivery(r.Context())
+	if err != nil {
+		s.fail(w, err)
+		return
+	}
+	destCount, err := s.store.ListDestinations(r.Context())
+	if err != nil {
+		s.fail(w, err)
+		return
+	}
 	s.render(w, "dashboard", "layout", map[string]any{
 		"Title": "Dashboard", "Stats": stats, "Runs": runs,
 		"Coverage":         cov,
@@ -380,6 +412,9 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 		"StartHereWritten": startHere.BodyMD != "",
 		"LastExport":       lastExport,
 		"Health":           health,
+		"LastDelivery":     lastDelivery,
+		"DeliveryStale":    lastDelivery != nil && lastDelivery.Age() > staleDelivery,
+		"HasDestinations":  len(destCount) > 0,
 		"SetupIncomplete":  !s.setupComplete(r.Context()),
 	})
 }

@@ -73,6 +73,31 @@ var migrations = []string{
 	  SELECT id, resource_id, field, body_md, updated_at FROM annotations;
 	DROP TABLE annotations;
 	ALTER TABLE annotations_v5 RENAME TO annotations;`,
+	// v6: delivery. A runbook that never leaves the machine that generated
+	// it is worthless in most of the situations it was written for, so
+	// where copies go is configuration, and whether they arrived is
+	// history — the same treatment collection runs get.
+	`CREATE TABLE destinations (
+		id      INTEGER PRIMARY KEY,
+		type    TEXT NOT NULL,
+		name    TEXT NOT NULL UNIQUE,
+		config  TEXT NOT NULL DEFAULT '{}',
+		secret  BLOB,
+		guides  TEXT NOT NULL DEFAULT 'household,administrator',
+		formats TEXT NOT NULL DEFAULT 'pdf',
+		enabled INTEGER NOT NULL DEFAULT 1
+	);
+	CREATE TABLE deliveries (
+		id             INTEGER PRIMARY KEY,
+		-- SET NULL, not CASCADE: "when did a copy last leave the building"
+		-- must survive someone deleting the destination it left through.
+		destination_id INTEGER REFERENCES destinations(id) ON DELETE SET NULL,
+		name           TEXT NOT NULL,
+		created_at     TEXT NOT NULL,
+		status         TEXT NOT NULL CHECK (status IN ('ok', 'error')),
+		detail         TEXT NOT NULL DEFAULT ''
+	);
+	CREATE INDEX deliveries_recent ON deliveries (created_at DESC);`,
 }
 
 // Store wraps the SQLite database. Safe for concurrent use; SQLite-level

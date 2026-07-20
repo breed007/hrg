@@ -82,6 +82,29 @@
   <p class="dim">{{if .LastExport}}Last export: {{.LastExport.CreatedAt}} → <code>{{.LastExport.Path}}</code>{{else}}Never exported — <a href="/runbook">generate the runbook</a> so a copy exists outside this app.{{end}}</p>
 </div>
 
+<h2>Copies off this machine</h2>
+{{if not .HasDestinations}}
+<div class="banner banner-warn">
+  <strong>Nothing has been set up to leave this machine.</strong> A runbook that only exists
+  on the server it documents is missing in most of the situations it was written for.
+  <a href="/destinations">Set up a destination</a> — a sync folder takes about thirty seconds.
+</div>
+{{else if not .LastDelivery}}
+<div class="banner banner-warn">
+  <strong>No copy has ever successfully left this machine.</strong> A destination is configured
+  but has never delivered. <a href="/destinations">Send one now</a> and check it arrives.
+</div>
+{{else if .DeliveryStale}}
+<div class="banner banner-warn">
+  <strong>The last copy left on {{.LastDelivery.CreatedAt}}</strong> via {{.LastDelivery.Name}} —
+  over a month ago. Whatever has changed here since then exists in one place.
+  <a href="/destinations">Send a fresh copy</a>.
+</div>
+{{else}}
+<p class="dim">A copy last left this machine <strong>{{.LastDelivery.CreatedAt}}</strong>
+via {{.LastDelivery.Name}}. <a href="/destinations">Destinations</a></p>
+{{end}}
+
 <h2>Inventory by kind</h2>
 <table>
   <thead><tr><th>Kind</th><th class="num">Count</th></tr></thead>

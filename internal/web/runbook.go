@@ -361,6 +361,10 @@ func (s *Server) generateRunbook(ctx context.Context, cfg runbookConfig) {
 		return
 	}
 
+	// Delivery reuses the bytes written here, keyed "guide-format", so a
+	// copy that leaves the building is byte-identical to the copy on disk.
+	delivered := map[string][]byte{}
+
 	// Both guides, every run, from the same Document — so the household copy
 	// and the technical copy can never disagree about the same house.
 	// 0600 everywhere: an export is a map of the network.
@@ -376,6 +380,7 @@ func (s *Server) generateRunbook(ctx context.Context, cfg runbookConfig) {
 			continue
 		}
 		record(string(guide)+"-html", htmlPath, "ok", fmt.Sprintf("%d KiB", len(htmlOut)/1024))
+		delivered[string(guide)+"-html"] = htmlOut
 
 		// PDF, printed from the same HTML via headless Chrome (optional).
 		if cfg.PDF {
@@ -387,6 +392,7 @@ func (s *Server) generateRunbook(ctx context.Context, cfg runbookConfig) {
 				record(string(guide)+"-pdf", pdfPath, "error", err.Error())
 			} else {
 				record(string(guide)+"-pdf", pdfPath, "ok", fmt.Sprintf("%d KiB", len(pdf)/1024))
+				delivered[string(guide)+"-pdf"] = pdf
 			}
 		}
 	}
@@ -408,6 +414,11 @@ func (s *Server) generateRunbook(ctx context.Context, cfg runbookConfig) {
 		}
 		record("markdown", mdDir, "ok", detail)
 	}
+
+	// Last, and never conditional on the git commit or the markdown tree
+	// succeeding: getting a copy off this machine is the point of all of
+	// the above.
+	s.deliverAll(ctx, delivered)
 }
 
 // handleRunbookDownload serves the most recent export of one guide in one

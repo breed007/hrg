@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/breed007/hrg/internal/collector"
+	"github.com/breed007/hrg/internal/deliver"
 	"github.com/breed007/hrg/internal/notify"
 	"github.com/breed007/hrg/internal/store"
 )
@@ -55,6 +56,8 @@ func (s *Server) handleSetup(w http.ResponseWriter, r *http.Request) {
 	startHere, _ := s.store.GetPage(ctx, "start_here")
 	cfgs, _ := s.store.ListCollectorConfigs(ctx)
 	latest, _ := s.store.LatestOKExport(ctx, "household-html")
+	dests, _ := s.store.ListDestinations(ctx)
+	lastDelivery, _ := s.store.LastGoodDelivery(ctx)
 
 	s.render(w, "setup", "layout", map[string]any{
 		"Title": "Setup", "Cfg": cfg, "AuthOn": authOn,
@@ -62,6 +65,9 @@ func (s *Server) handleSetup(w http.ResponseWriter, r *http.Request) {
 		"StartHereWritten": startHere.BodyMD != "",
 		"CollectorCount":   len(cfgs),
 		"HasExport":        latest != nil,
+		"DestKinds":        deliver.Kinds(),
+		"DestCount":        len(dests),
+		"HasDelivered":     lastDelivery != nil,
 		"Err":              r.URL.Query().Get("err"),
 	})
 }
