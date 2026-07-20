@@ -15,8 +15,14 @@ import (
 	"github.com/breed007/hrg/internal/assets"
 )
 
-//go:embed templates/artifact.html
-var artifactTmpl string
+//go:embed templates/shared.html
+var sharedTmpl string
+
+//go:embed templates/household.html
+var householdTmpl string
+
+//go:embed templates/administrator.html
+var administratorTmpl string
 
 //go:embed templates/artifact.css
 var artifactCSS string
@@ -28,9 +34,7 @@ type RenderOptions struct {
 	// changes needed.
 	PaperSize string
 	// CustomCSS is user-supplied CSS appended after the base stylesheet, so
-	// it overrides. Targets section IDs (#start-here, #contacts, #physical,
-	// #network, #services, #backups, #appendix) and element classes
-	// (.entry, .warn, .md, .kind, …).
+	// it overrides. Targets section IDs and element classes.
 	CustomCSS string
 }
 
@@ -61,12 +65,9 @@ func SanitizeCSS(css string) string {
 	return styleBreakout.ReplaceAllString(css, "")
 }
 
-// RenderHTML produces the single-file HTML artifact: inline CSS, inline
-// Mermaid, no external references, no links back to HRG. The output is
-// meant to live on a USB stick or in a printed binder.
-func RenderHTML(doc *Document, opts RenderOptions) ([]byte, error) {
+func renderFuncs() template.FuncMap {
 	md := goldmark.New(goldmark.WithExtensions(extension.GFM))
-	funcs := template.FuncMap{
+	return template.FuncMap{
 		"markdown": func(src string) template.HTML {
 			var buf strings.Builder
 			if err := md.Convert([]byte(src), &buf); err != nil {
@@ -82,24 +83,44 @@ func RenderHTML(doc *Document, opts RenderOptions) ([]byte, error) {
 			return string(b)
 		},
 	}
-	t, err := template.New("artifact").Funcs(funcs).Parse(artifactTmpl)
+}
+
+// RenderHTML produces one self-contained guide: inline CSS, no external
+// references, no links back to the app. Both guides come from the same
+// Document, so they can never disagree.
+//
+// Only the Administrator Guide embeds the diagram renderer — which keeps
+// the Household Guide small enough to email comfortably.
+func RenderHTML(doc *Document, guide Guide, opts RenderOptions) ([]byte, error) {
+	body := householdTmpl
+	if guide == GuideAdministrator {
+		body = administratorTmpl
+	}
+
+	t, err := template.New("guide").Funcs(renderFuncs()).Parse(sharedTmpl)
 	if err != nil {
-		return nil, fmt.Errorf("parse artifact template: %w", err)
+		return nil, fmt.Errorf("parse shared partials: %w", err)
+	}
+	if _, err := t.Parse(body); err != nil {
+		return nil, fmt.Errorf("parse %s template: %w", guide, err)
+	}
+
+	data := map[string]any{
+		"Doc":   doc,
+		"Guide": guide,
+		"CSS":   template.CSS(artifactCSS),
+		// User CSS + paper size, applied after the base stylesheet.
+		"ExtraCSS":  template.CSS(opts.presentationCSS()),
+		"MermaidJS": template.JS(""),
+	}
+	if guide == GuideAdministrator {
+		// Safe to inline: assets.MermaidJS is verified free of "</script".
+		data["MermaidJS"] = template.JS(assets.MermaidJS)
 	}
 
 	var out bytes.Buffer
-	err = t.Execute(&out, map[string]any{
-		"Doc": doc,
-		"CSS": template.CSS(artifactCSS),
-		// User CSS + paper size, applied after the base stylesheet.
-		// template.CSS marks it trusted: this is the operator's own input,
-		// same trust level as the collector tokens they enter.
-		"ExtraCSS": template.CSS(opts.presentationCSS()),
-		// Safe to inline: assets.MermaidJS is verified free of "</script".
-		"MermaidJS": template.JS(assets.MermaidJS),
-	})
-	if err != nil {
-		return nil, fmt.Errorf("render artifact: %w", err)
+	if err := t.ExecuteTemplate(&out, "guide", data); err != nil {
+		return nil, fmt.Errorf("render %s guide: %w", guide, err)
 	}
 	return out.Bytes(), nil
 }

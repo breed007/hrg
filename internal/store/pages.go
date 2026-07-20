@@ -16,8 +16,10 @@ type Page struct {
 	UpdatedAt string
 }
 
-// PageSlugs are the hand-authored pages the runbook expects.
-var PageSlugs = []string{"start_here", "contacts"}
+// PageSlugs are the hand-authored pages the runbook expects, in the order
+// a household reader meets them: what is all this → what to do when it
+// breaks → who to call.
+var PageSlugs = []string{"overview", "start_here", "contacts"}
 
 func validPageSlug(slug string) bool {
 	for _, s := range PageSlugs {

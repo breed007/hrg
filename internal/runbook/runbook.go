@@ -17,12 +17,62 @@ import (
 	"github.com/breed007/hrg/internal/store"
 )
 
+// Guide identifies which of the two co-equal documents is being rendered.
+// Both are generated from the same Document in the same run, so they can
+// never disagree with each other.
+type Guide string
+
+const (
+	// GuideHousehold is written for the person who did NOT build any of
+	// this — a partner, family member, or executor. Plain language, short,
+	// and focused on keeping the essentials alive or safely winding things
+	// down.
+	GuideHousehold Guide = "household"
+	// GuideAdministrator is written for whoever actually does the work —
+	// the technical friend the household calls, or future-you. Inventory,
+	// topology, IP plan, recovery procedures.
+	GuideAdministrator Guide = "administrator"
+)
+
+// Guides lists both, in generation order.
+var Guides = []Guide{GuideHousehold, GuideAdministrator}
+
+// Title is the human-facing name of the guide, used on its cover and in
+// cross-references. Named for the READER, not the contents.
+func (g Guide) Title() string {
+	if g == GuideAdministrator {
+		return "Administrator Guide"
+	}
+	return "Household Guide"
+}
+
+// Other returns the companion guide — used for cross-references, because
+// the handoff moment (household calls their technical friend) is exactly
+// when both documents are needed.
+func (g Guide) Other() Guide {
+	if g == GuideAdministrator {
+		return GuideHousehold
+	}
+	return GuideAdministrator
+}
+
+// Slug is the filename stem for this guide's exports.
+func (g Guide) Slug() string { return string(g) + "-guide" }
+
+// Valid reports whether g is a known guide.
+func (g Guide) Valid() bool {
+	return g == GuideHousehold || g == GuideAdministrator
+}
+
 // Document is the assembled runbook, ready for any renderer.
 type Document struct {
 	Title       string
 	GeneratedAt time.Time
 
 	// Hand-authored pages; empty string = never written (renderers nag).
+	// OverviewMD answers "what is all this?" in plain language — the first
+	// thing a household reader needs and the one thing no collector knows.
+	OverviewMD  string
 	StartHereMD string
 	ContactsMD  string
 
@@ -129,6 +179,7 @@ func Build(ctx context.Context, st *store.Store, title string) (*Document, error
 	doc := &Document{Title: title, GeneratedAt: time.Now()}
 
 	for slug, dst := range map[string]*string{
+		"overview":   &doc.OverviewMD,
 		"start_here": &doc.StartHereMD,
 		"contacts":   &doc.ContactsMD,
 	} {

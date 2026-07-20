@@ -161,3 +161,9 @@ textarea {
   border: 1px solid var(--line); border-radius: 8px; padding: .8rem 1.1rem; margin: 1rem 0;
 }
 .wizard h3 { margin: 0 0 .4rem; }
+
+/* --- two co-equal guides --- */
+.guide-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+@media (max-width: 50rem) { .guide-cards { grid-template-columns: 1fr; } }
+.guide-card { border: 1px solid var(--line); border-radius: 8px; padding: .9rem 1.1rem; }
+.guide-card h3 { margin: 0 0 .3rem; }

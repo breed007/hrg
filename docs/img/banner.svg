@@ -19,11 +19,11 @@
 
   <!-- wordmark -->
   <text x="70" y="130" font-size="76" font-weight="800" fill="#7fc9a2" letter-spacing="4">HRG</text>
-  <text x="74" y="176" font-size="26" font-weight="600" fill="#e8e8e2">Homelab Runbook Generator</text>
+  <text x="74" y="176" font-size="26" font-weight="600" fill="#e8e8e2">Home Runbook Generator</text>
 
   <!-- tagline -->
-  <text x="74" y="228" font-size="19" fill="#b9bcb4">Your homelab's &quot;hit by a bus&quot; document — generated from the</text>
-  <text x="74" y="256" font-size="19" fill="#b9bcb4">infrastructure itself, and it still works <tspan font-weight="700" fill="#e8e8e2">when the network is down.</tspan></text>
+  <text x="74" y="228" font-size="19" fill="#b9bcb4">Documents your home's technology so someone else can keep it</text>
+  <text x="74" y="256" font-size="19" fill="#b9bcb4">running — or safely shut it down — <tspan font-weight="700" fill="#e8e8e2">without you.</tspan></text>
 
   <!-- chips -->
   <g font-size="14" font-weight="600">

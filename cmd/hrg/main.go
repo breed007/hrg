@@ -1,4 +1,4 @@
-// Command hrg is the Homelab Runbook Generator: collectors observe your
+// Command hrg is the Home Runbook Generator: collectors observe your
 // infrastructure, the store versions what they see, and the web UI (and
 // eventually the runbook artifact) presents it.
 package main
@@ -36,7 +36,7 @@ func main() {
 		showVersion = flag.Bool("version", false, "print version and exit")
 	)
 	flag.Usage = func() {
-		fmt.Fprintf(flag.CommandLine.Output(), `hrg — Homelab Runbook Generator
+		fmt.Fprintf(flag.CommandLine.Output(), `hrg — Home Runbook Generator
 
 Usage:
   hrg [flags] serve     collect once, then serve the web UI (default)

@@ -174,23 +174,22 @@ func TestRenderHTMLSelfContained(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	out, err := RenderHTML(doc, RenderOptions{})
+	out, err := RenderHTML(doc, GuideAdministrator, RenderOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
 	html := string(out)
 
 	for _, want := range []string{
-		"Check the closet.",                    // START HERE content
 		"Media server — TV breaks without it.", // annotation rendered
 		"1Password vault Home",                 // credential pointer
 		"mermaid.initialize",                   // inline diagram runtime
 		"10.0.10.0/24",                         // IP plan
-		"No contacts page written yet",         // contacts nag (page empty)
+		"No contacts have been written down",   // shared contacts nag
 		"nightly vzdump",                       // backup section
 	} {
 		if !strings.Contains(html, want) {
-			t.Errorf("artifact missing %q", want)
+			t.Errorf("administrator guide missing %q", want)
 		}
 	}
 
@@ -201,9 +200,9 @@ func TestRenderHTMLSelfContained(t *testing.T) {
 		t.Errorf("artifact references external resource: %q", m)
 	}
 	// Sections are wrapped so custom CSS can target them.
-	for _, id := range []string{"start-here", "contacts", "physical", "network", "services", "backups", "appendix"} {
+	for _, id := range []string{"topology", "network", "physical", "services", "backups", "accounts", "appendix"} {
 		if !strings.Contains(html, `<section id="`+id+`">`) {
-			t.Errorf("artifact missing section wrapper #%s", id)
+			t.Errorf("administrator guide missing section wrapper #%s", id)
 		}
 	}
 
@@ -215,6 +214,67 @@ func TestRenderHTMLSelfContained(t *testing.T) {
 	}
 }
 
+// The two guides are co-equal but genuinely different documents: each is
+// aimed at its own reader, they share the sections both readers need, and
+// they point at each other.
+func TestTwoGuidesDiffer(t *testing.T) {
+	st := seed(t)
+	doc, err := Build(context.Background(), st, "Test Runbook")
+	if err != nil {
+		t.Fatal(err)
+	}
+	house, err := RenderHTML(doc, GuideHousehold, RenderOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	admin, err := RenderHTML(doc, GuideAdministrator, RenderOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	h, a := string(house), string(admin)
+
+	// Household-only content.
+	if !strings.Contains(h, "Check the closet.") {
+		t.Error("household guide missing the START HERE triage content")
+	}
+	if !strings.Contains(h, "Household Guide") {
+		t.Error("household guide missing its edition label")
+	}
+	// Engineer content must NOT be in the household guide.
+	for _, unwanted := range []string{"10.0.10.0/24", "mermaid.initialize", "IP plan"} {
+		if strings.Contains(h, unwanted) {
+			t.Errorf("household guide leaked technical content: %q", unwanted)
+		}
+	}
+
+	// Shared sections appear in both — authored once, rendered twice.
+	for _, shared := range []string{"Basement closet", "No contacts have been written down"} {
+		if !strings.Contains(h, shared) {
+			t.Errorf("household guide missing shared content %q", shared)
+		}
+		if !strings.Contains(a, shared) {
+			t.Errorf("administrator guide missing shared content %q", shared)
+		}
+	}
+
+	// Each points at the other, because the handoff is the failure point.
+	if !strings.Contains(h, "Administrator Guide") {
+		t.Error("household guide does not cross-reference the Administrator Guide")
+	}
+	if !strings.Contains(a, "Household Guide") {
+		t.Error("administrator guide does not cross-reference the Household Guide")
+	}
+
+	// The household guide carries no diagram runtime, so it stays small
+	// enough to email — the whole point of splitting them.
+	if len(house) > 200*1024 {
+		t.Errorf("household guide should be small (no Mermaid); got %d KiB", len(house)/1024)
+	}
+	if len(admin) <= len(house) {
+		t.Error("administrator guide should be the larger document (it embeds the diagram renderer)")
+	}
+}
+
 func TestRenderMarkdownTree(t *testing.T) {
 	st := seed(t)
 	doc, err := Build(context.Background(), st, "Test Runbook")
@@ -223,21 +283,34 @@ func TestRenderMarkdownTree(t *testing.T) {
 	}
 	files := RenderMarkdown(doc)
 
+	// The root README is an index that routes each reader to their guide.
 	readme := string(files["README.md"])
-	if !strings.Contains(readme, "Check the closet.") {
-		t.Error("README missing START HERE content")
+	for _, want := range []string{"Household Guide", "Administrator Guide"} {
+		if !strings.Contains(readme, want) {
+			t.Errorf("README index missing link to %q", want)
+		}
 	}
-	network := string(files["network.md"])
+
+	// Household guide: one readable file, with the triage content.
+	house := string(files["household-guide.md"])
+	if !strings.Contains(house, "Check the closet.") {
+		t.Error("household-guide.md missing START HERE content")
+	}
+	if strings.Contains(house, "10.0.10.0/24") {
+		t.Error("household-guide.md leaked IP-plan detail")
+	}
+
+	network := string(files["administrator-guide/network.md"])
 	if !strings.Contains(network, "```mermaid") {
-		t.Error("network.md missing mermaid fence")
+		t.Error("administrator network.md missing mermaid fence")
 	}
 	if !strings.Contains(network, "| `10.0.10.0/24` |") {
-		t.Error("network.md missing subnet table row")
+		t.Error("administrator network.md missing subnet table row")
 	}
 	// Annotated resources get their own file; unannotated ones don't.
 	plexFile := ""
 	for p := range files {
-		if strings.HasPrefix(p, "appendix/resources/") && strings.Contains(p, "plex") {
+		if strings.HasPrefix(p, "administrator-guide/appendix/resources/") && strings.Contains(p, "plex") {
 			plexFile = p
 		}
 	}
@@ -253,7 +326,7 @@ func TestRenderMarkdownTree(t *testing.T) {
 	if err := WriteTree(dir, files); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := os.Stat(filepath.Join(dir, "appendix", "inventory.md")); err != nil {
+	if _, err := os.Stat(filepath.Join(dir, "administrator-guide", "appendix", "inventory.md")); err != nil {
 		t.Errorf("tree not written: %v", err)
 	}
 	if err := WriteTree(dir, files); err != nil {

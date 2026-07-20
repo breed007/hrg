@@ -1,0 +1,94 @@
+{{/*
+Partials shared by both guides. Sections that belong in BOTH documents —
+who to call, where things physically are, where the accounts live — are
+authored once here and rendered into each guide, so the two can never
+drift apart.
+*/}}
+
+{{define "doc-head"}}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Doc.Title}} — {{.Guide.Title}}</title>
+<style>{{.CSS}}{{.ExtraCSS}}</style>
+</head>
+<body>
+{{end}}
+
+{{define "doc-footer"}}
+<footer>
+  <p><strong>{{.Doc.Title}} — {{.Guide.Title}}</strong> · generated {{.Doc.GeneratedAt.Format "2006-01-02 15:04 MST"}}</p>
+  <p>There is a companion document: the <strong>{{.Guide.Other.Title}}</strong>. It should be stored in the same place as this one.</p>
+  <p>Keep a copy somewhere the network can't eat it: a USB stick, a cloud drive, or paper.</p>
+</footer>
+</body>
+</html>
+{{end}}
+
+{{/* Age banner: an old printout should say so, loudly. */}}
+{{define "age-banner"}}
+<div class="agebar">This copy was generated on <strong>{{.Doc.GeneratedAt.Format "January 2, 2006"}}</strong>. If that was a long time ago, things may have changed — look for a newer copy.</div>
+{{end}}
+
+{{/* Who to call — shared by both guides. */}}
+{{define "contacts-body"}}
+{{if .Doc.ContactsMD}}
+<div class="md">{{markdown .Doc.ContactsMD}}</div>
+{{else}}
+<div class="warn">No contacts have been written down yet. This should list the internet provider's phone number, who to call for help, and where the password manager is.</div>
+{{end}}
+{{if .Doc.Accounts}}
+<h3>Accounts on record</h3>
+{{range .Doc.Accounts}}{{template "entry" .}}{{end}}
+{{end}}
+{{end}}
+
+{{/* Where the equipment physically is — shared by both guides. */}}
+{{define "physical-body"}}
+{{range .Doc.Locations}}
+<h3>{{.Location.Name}}</h3>
+{{if .Location.Attrs.directions}}<p><em>How to get there: {{.Location.Attrs.directions}}</em></p>{{end}}
+{{if .Location.NoteMD}}<div class="md">{{markdown .Location.NoteMD}}</div>{{end}}
+{{range .Items}}{{template "entry" .}}{{end}}
+{{end}}
+{{if .Doc.Unplaced}}
+<h3>Not assigned to a place</h3>
+<p class="dim">Nobody has written down where these live, so a reader won't know where to find them.</p>
+{{range .Doc.Unplaced}}{{template "entry" .}}{{end}}
+{{end}}
+{{end}}
+
+{{/* Wind-down guidance. Computed from the dependency graph so a reader can
+     tell what is safe to switch off. Populated by the blast-radius work. */}}
+{{define "winddown-body"}}
+<p class="dim">If you need to reduce or shut this down, some things can be switched off with no
+effect and others will take useful things with them. This section is generated from how the
+systems actually depend on each other.</p>
+<div class="warn">Not available yet — no dependency information has been recorded. Whoever
+maintains this can add relationships in the app so this section can be generated.</div>
+{{end}}
+
+{{/* One resource, technical framing. Used by the Administrator Guide and
+     for accounts/physical entries in both. */}}
+{{define "entry"}}
+<div class="entry">
+  <div class="entry-head">
+    <h4>{{.Name}}</h4>
+    <span class="kind">{{.Kind}}</span>
+    <span class="identity">{{.Collector}} / {{.SourceID}}</span>
+  </div>
+  {{if .PurposeMD}}<div class="field-label">Purpose</div><div class="md">{{markdown .PurposeMD}}</div>
+  {{else}}<p class="badge-warn">No purpose documented.</p>{{end}}
+  {{if .RecoveryMD}}<div class="field-label">Recovery</div><div class="md">{{markdown .RecoveryMD}}</div>{{end}}
+  {{if .CredMD}}<div class="field-label">Credentials live at</div><div class="md">{{markdown .CredMD}}</div>{{end}}
+  {{if .NoteMD}}<div class="field-label">Notes</div><div class="md">{{markdown .NoteMD}}</div>{{end}}
+  {{if .Attrs.power_cycle}}<div class="field-label">Power cycle</div><p>{{.Attrs.power_cycle}}</p>{{end}}
+  {{if .Attrs.location}}<p class="dim">Location: {{.Attrs.location}}</p>{{end}}
+  {{if .Edges}}
+  <div class="edges">
+    {{range .Edges}}{{if .Outbound}}→ {{.Relation}}: {{.PeerName}} ({{.PeerKind}}){{else}}← {{.Relation}} by: {{.PeerName}} ({{.PeerKind}}){{end}}<br>{{end}}
+  </div>
+  {{end}}
+</div>
+{{end}}

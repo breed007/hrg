@@ -1,0 +1,82 @@
+{{define "guide"}}
+{{template "doc-head" .}}
+
+<h1>{{.Doc.Title}}</h1>
+<p class="edition">Household Guide</p>
+<p class="subtitle">This explains the technology in this home in plain language: what it is,
+what to do when something stops working, and who to call. You do not need to be technical to use it.</p>
+{{template "age-banner" .}}
+
+<nav class="toc">
+<strong>What's in here</strong>
+<ol>
+  <li><a href="#overview">What is all this?</a></li>
+  <li><a href="#broken">If something is broken</a></li>
+  <li><a href="#who">Who to call</a></li>
+  <li><a href="#where">Where the equipment is</a></li>
+  <li><a href="#things">What each thing does</a></li>
+  <li><a href="#winddown">Turning things off safely</a></li>
+</ol>
+<p class="toc-note">There is a second document, the <strong>Administrator Guide</strong>, with the
+technical details. You don't need it — but whoever helps you will.</p>
+</nav>
+
+<section id="overview">
+<h2>1 · What is all this?</h2>
+{{if .Doc.OverviewMD}}
+<div class="md lead">{{markdown .Doc.OverviewMD}}</div>
+{{else}}
+<div class="warn"><strong>This page hasn't been written yet.</strong>
+It should explain, in a few plain sentences, what the equipment in this home actually does —
+something like <em>"there's a small computer in the basement closet that stores our photos and
+lets the TVs play movies. Most of it looks after itself."</em>
+Nobody but the person who set this up can write it.</div>
+{{end}}
+</section>
+
+<section id="broken">
+<h2>2 · If something is broken</h2>
+{{if .Doc.StartHereMD}}
+<div class="starthere md">{{markdown .Doc.StartHereMD}}</div>
+{{else}}
+<div class="warn"><strong>This is the most important page, and it is empty.</strong>
+It should walk through the things most likely to go wrong — the internet is out, the TV won't play,
+something is beeping — in plain steps, naming where to go and what to press.</div>
+{{end}}
+</section>
+
+<section id="who">
+<h2>3 · Who to call</h2>
+{{template "contacts-body" .}}
+</section>
+
+<section id="where">
+<h2>4 · Where the equipment is</h2>
+<p class="dim">Most problems are fixed by finding one of these and restarting it.</p>
+{{template "physical-body" .}}
+</section>
+
+<section id="things">
+<h2>5 · What each thing does</h2>
+{{if .Doc.Services}}
+<p class="dim">The systems running in this home, and what stops working if each one stops.</p>
+{{range .Doc.Services}}
+<div class="entry">
+  <div class="entry-head"><h4>{{.Name}}</h4></div>
+  {{if .PurposeMD}}<div class="md">{{markdown .PurposeMD}}</div>
+  {{else}}<p class="badge-warn">Nobody has written down what this is for.</p>{{end}}
+  {{if .NoteMD}}<div class="md">{{markdown .NoteMD}}</div>{{end}}
+</div>
+{{end}}
+{{else}}
+<p class="dim">Nothing has been recorded yet.</p>
+{{end}}
+</section>
+
+<section id="winddown">
+<h2>6 · Turning things off safely</h2>
+{{template "winddown-body" .}}
+</section>
+
+{{template "doc-footer" .}}
+{{end}}

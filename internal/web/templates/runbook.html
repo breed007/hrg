@@ -2,9 +2,11 @@
 <h1>Runbook</h1>
 <p class="dim">The artifact is the product: a self-contained document that works when HRG — and the network — are down. The two pages below are the parts only a human can write.</p>
 
-{{template "runbook-page" dict2 "Page" .StartHere "Label" "START HERE" "Help" "The triage page: the internet is down, the TV doesn't work, something is beeping. Written for a stressed non-expert — plain language, physical locations, power buttons. This is the most important page in the runbook."}}
+{{template "runbook-page" dict2 "Page" .Overview "Label" "What is all this?" "Help" "The first thing a household reader meets. A few plain sentences explaining what the equipment in this home actually does — no jargon. Only you can write it."}}
 
-{{template "runbook-page" dict2 "Page" .Contacts "Label" "Emergency contacts & accounts" "Help" "ISP support, registrar, where the password vault is, who has emergency access, which account pays for what."}}
+{{template "runbook-page" dict2 "Page" .StartHere "Label" "If something is broken (START HERE)" "Help" "The triage page: the internet is down, the TV doesn't work, something is beeping. Written for a stressed non-expert — plain language, physical locations, power buttons. This is the most important page in the runbook."}}
+
+{{template "runbook-page" dict2 "Page" .Contacts "Label" "Who to call — contacts & accounts" "Help" "ISP support, registrar, where the password vault is, who has emergency access, which account pays for what."}}
 
 <h2>Generate</h2>
 {{if .Err}}<p class="form-error">{{.Err}}</p>{{end}}
@@ -64,12 +66,23 @@ h2 { color: #0a5; }
 
 <div class="form-actions gen-row">
   <form method="post" action="/runbook/generate" class="inline">
-    <button type="submit">Generate runbook</button>
+    <button type="submit">Generate both guides</button>
   </form>
-  <a href="/runbook/preview" target="_blank">Preview artifact</a>
-  {{if .Latest}}<a href="/runbook/download/html">Download HTML</a>{{end}}
-  {{if .LatestPDF}}<a href="/runbook/download/pdf">Download PDF</a>{{end}}
-  {{if .Latest}}<span class="dim">last export {{.Latest.CreatedAt}}</span>{{end}}
+</div>
+
+<div class="guide-cards">
+{{range .Guides}}
+  <div class="guide-card">
+    <h3>{{.Title}}</h3>
+    <p class="dim">{{if eq .Key "household"}}Plain language, for the people who live here. No jargon, no diagrams — short enough to actually read.{{else}}Topology, IP plan, service catalog and recovery procedures, for whoever does the work.{{end}}</p>
+    <p class="form-actions">
+      <a href="/runbook/preview/{{.Key}}" target="_blank">Preview</a>
+      {{if .HTML}}<a href="/runbook/download/{{.Key}}/html">HTML</a>{{end}}
+      {{if .PDF}}<a href="/runbook/download/{{.Key}}/pdf">PDF</a>{{end}}
+    </p>
+    {{if .HTML}}<p class="dim">last generated {{.HTML.CreatedAt}}</p>{{else}}<p class="dim">not generated yet</p>{{end}}
+  </div>
+{{end}}
 </div>
 
 {{if .Exports}}

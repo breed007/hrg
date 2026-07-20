@@ -33,14 +33,25 @@
   </li>
 
   <li>
-    <h3>4 · Write the START HERE page {{if .StartHereWritten}}<span class="badge badge-ok">done</span>{{end}}</h3>
-    <p class="dim">The most important page: plain-language triage for when the internet is down or something is beeping. Only you can write it — HRG pre-fills a skeleton.</p>
-    <p class="add-row"><a class="btn" href="/runbook?edit=start_here#page-start_here">Write START HERE</a></p>
+    <h3>4 · Write the two pages only you can write {{if .StartHereWritten}}<span class="badge badge-ok">started</span>{{end}}</h3>
+    <p class="dim">Everything else is collected automatically. These two are the human half, and they're
+    what makes the Household Guide worth handing to someone:</p>
+    <ul class="dim">
+      <li><strong>What is all this?</strong> — a few plain sentences about what the equipment does.</li>
+      <li><strong>If something is broken</strong> — plain-language triage for when the internet is out
+      or something is beeping. The most important page in the whole document.</li>
+    </ul>
+    <p class="add-row">
+      <a class="btn" href="/runbook?edit=overview#page-overview">Write "What is all this?"</a>
+      <a class="btn" href="/runbook?edit=start_here#page-start_here">Write START HERE</a>
+    </p>
   </li>
 
   <li>
-    <h3>5 · Generate your first runbook {{if .HasExport}}<span class="badge badge-ok">done</span>{{end}}</h3>
-    <p class="dim">Produce the self-contained artifact so a copy exists outside this app.</p>
+    <h3>5 · Generate your two guides {{if .HasExport}}<span class="badge badge-ok">done</span>{{end}}</h3>
+    <p class="dim">HRG produces a <strong>Household Guide</strong> for the people who live here and an
+    <strong>Administrator Guide</strong> for whoever does the technical work — both from the same data,
+    so they always agree. Generate them so a copy exists outside this app.</p>
     <p class="add-row">
       <a class="btn" href="/runbook">Go to Runbook</a>
     </p>

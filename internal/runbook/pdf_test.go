@@ -34,7 +34,7 @@ func TestRenderPDFWithChrome(t *testing.T) {
 		t.Skip("no Chrome/Chromium installed")
 	}
 	doc := seedDoc(t)
-	html, err := RenderHTML(doc, RenderOptions{})
+	html, err := RenderHTML(doc, GuideAdministrator, RenderOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +53,7 @@ func TestRenderOptions(t *testing.T) {
 
 	// Paper size maps to the CSS @page descriptor; custom CSS is appended
 	// verbatim after the base stylesheet (so it overrides).
-	out, err := RenderHTML(doc, RenderOptions{PaperSize: "a4", CustomCSS: "h2 { color: rebeccapurple; }"})
+	out, err := RenderHTML(doc, GuideAdministrator, RenderOptions{PaperSize: "a4", CustomCSS: "h2 { color: rebeccapurple; }"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -72,7 +72,7 @@ func TestRenderOptions(t *testing.T) {
 	}
 
 	// Default is US Letter.
-	def, _ := RenderHTML(doc, RenderOptions{})
+	def, _ := RenderHTML(doc, GuideAdministrator, RenderOptions{})
 	if !strings.Contains(string(def), "@page { size: letter; }") {
 		t.Error("default paper size should be letter")
 	}

@@ -134,8 +134,8 @@ func NewServer(st *store.Store, key *secrets.Key, static []collector.Collector, 
 	mux.HandleFunc("POST /runbook/pages/{slug}", s.handlePageSave)
 	mux.HandleFunc("POST /runbook/settings", s.handleRunbookSettings)
 	mux.HandleFunc("POST /runbook/generate", s.handleRunbookGenerate)
-	mux.HandleFunc("GET /runbook/preview", s.handleRunbookPreview)
-	mux.HandleFunc("GET /runbook/download/{format}", s.handleRunbookDownload)
+	mux.HandleFunc("GET /runbook/preview/{guide}", s.handleRunbookPreview)
+	mux.HandleFunc("GET /runbook/download/{guide}/{format}", s.handleRunbookDownload)
 	mux.HandleFunc("POST /resources/{id}/backup-check", s.handleBackupCheck)
 	mux.HandleFunc("POST /collectors/test", s.handleCollectorTest)
 	mux.HandleFunc("POST /runbook/notify-test", s.handleNotifyTest)
@@ -352,7 +352,7 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, err)
 		return
 	}
-	lastExport, err := s.store.LatestOKExport(r.Context(), "html")
+	lastExport, err := s.store.LatestOKExport(r.Context(), "household-html")
 	if err != nil {
 		s.fail(w, err)
 		return

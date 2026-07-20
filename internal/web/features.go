@@ -54,7 +54,7 @@ func (s *Server) handleSetup(w http.ResponseWriter, r *http.Request) {
 	authOn, _ := s.authEnabled(ctx)
 	startHere, _ := s.store.GetPage(ctx, "start_here")
 	cfgs, _ := s.store.ListCollectorConfigs(ctx)
-	latest, _ := s.store.LatestOKExport(ctx, "html")
+	latest, _ := s.store.LatestOKExport(ctx, "household-html")
 
 	s.render(w, "setup", "layout", map[string]any{
 		"Title": "Setup", "Cfg": cfg, "AuthOn": authOn,

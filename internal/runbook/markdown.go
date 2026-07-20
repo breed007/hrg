@@ -16,6 +16,16 @@ import (
 // regenerate a directory: we only delete what we previously generated.
 const marker = ".hrg-runbook"
 
+// windDownMD renders the "what is safe to switch off" guidance for the
+// Household Guide. Derived from the dependency graph so a reader can tell
+// what takes useful things with it.
+func windDownMD(doc *Document) string {
+	return "If you need to reduce or shut this down, some things can be switched off with no effect " +
+		"and others will take useful things with them.\n\n" +
+		"> ⚠ Not available yet — no dependency information has been recorded. Whoever maintains this " +
+		"can add relationships in the app so this section can be generated.\n"
+}
+
 // RenderMarkdown produces the git-committable file tree as path → content.
 // Paths use forward slashes relative to the tree root. The topology ships
 // as a ```mermaid fence, which GitHub renders natively.
@@ -25,28 +35,96 @@ func RenderMarkdown(doc *Document) map[string][]byte {
 		files[path] = []byte(b.String())
 	}
 
-	// README.md — START HERE is the front page.
+	// README.md — an index that routes each reader to their own guide.
 	var b strings.Builder
 	fmt.Fprintf(&b, "# %s\n\n", doc.Title)
-	fmt.Fprintf(&b, "*Generated %s by HRG. Self-contained; treat as sensitive — it maps this home's infrastructure.*\n\n",
+	fmt.Fprintf(&b, "*Generated %s. Treat as sensitive — it maps this home's technology.*\n\n",
 		doc.GeneratedAt.Format("2006-01-02 15:04 MST"))
-	b.WriteString("## START HERE\n\n")
+	b.WriteString("There are two guides here. They are generated together from the same data, so they always agree.\n\n")
+	b.WriteString("## 📗 [Household Guide](household-guide.md)\n\n")
+	b.WriteString("Start here if you live here and something has stopped working. Plain language, no jargon:\nwhat all this is, what to do when it breaks, who to call, and what's safe to switch off.\n\n")
+	b.WriteString("## 📘 [Administrator Guide](administrator-guide/README.md)\n\n")
+	b.WriteString("For whoever does the technical work — the person the household calls, or future-you.\nTopology, IP plan, service catalog, recovery procedures, and the full inventory.\n\n")
+	put("README.md", &b)
+
+	// The Household Guide is short by design — one readable file, easy on a
+	// phone and easy to hand over.
+	b = strings.Builder{}
+	fmt.Fprintf(&b, "# %s — Household Guide\n\n", doc.Title)
+	b.WriteString("*This explains the technology in this home in plain language. You do not need to be technical to use it.*\n\n")
+	fmt.Fprintf(&b, "*This copy was generated %s. If that was a long time ago, look for a newer one.*\n\n---\n\n",
+		doc.GeneratedAt.Format("January 2, 2006"))
+
+	b.WriteString("## 1. What is all this?\n\n")
+	if doc.OverviewMD != "" {
+		b.WriteString(doc.OverviewMD + "\n\n")
+	} else {
+		b.WriteString("> ⚠ **Not written yet.** This should explain in a few plain sentences what the equipment in this home actually does.\n\n")
+	}
+
+	b.WriteString("## 2. If something is broken\n\n")
 	if doc.StartHereMD != "" {
 		b.WriteString(doc.StartHereMD + "\n\n")
 	} else {
-		b.WriteString("> ⚠ **This page has not been written yet.** The triage page — \"the internet is down, the TV doesn't work, something is beeping\" — only its author can write. Open HRG → Runbook and write it.\n\n")
+		b.WriteString("> ⚠ **This is the most important page, and it is empty.** It should walk through what to do when the internet is out, the TV won't play, or something is beeping.\n\n")
 	}
+
+	b.WriteString("## 3. Who to call\n\n")
+	if doc.ContactsMD != "" {
+		b.WriteString(doc.ContactsMD + "\n\n")
+	} else {
+		b.WriteString("> ⚠ Not written yet — the internet provider's number, who to call for help, and where the password manager is.\n\n")
+	}
+
+	b.WriteString("## 4. Where the equipment is\n\n")
+	b.WriteString("Most problems are fixed by finding one of these and restarting it.\n\n")
+	for _, lg := range doc.Locations {
+		fmt.Fprintf(&b, "### %s\n\n", lg.Location.Name)
+		if d, ok := lg.Location.Attrs["directions"].(string); ok {
+			fmt.Fprintf(&b, "*How to get there: %s*\n\n", d)
+		}
+		for _, e := range lg.Items {
+			fmt.Fprintf(&b, "- **%s**", mdCell(e.Name))
+			if pc, ok := e.Attrs["power_cycle"].(string); ok {
+				fmt.Fprintf(&b, " — %s", pc)
+			}
+			b.WriteString("\n")
+		}
+		b.WriteString("\n")
+	}
+
+	b.WriteString("## 5. What each thing does\n\n")
+	for _, e := range doc.Services {
+		fmt.Fprintf(&b, "### %s\n\n", mdCell(e.Name))
+		if e.PurposeMD != "" {
+			b.WriteString(e.PurposeMD + "\n\n")
+		} else {
+			b.WriteString("> ⚠ Nobody has written down what this is for.\n\n")
+		}
+	}
+
+	b.WriteString("## 6. Turning things off safely\n\n")
+	b.WriteString(windDownMD(doc))
+	b.WriteString("\n---\n\nThere is a companion **[Administrator Guide](administrator-guide/README.md)** with the technical details. You don't need it — but whoever helps you will.\n")
+	put("household-guide.md", &b)
+
+	// --- Administrator Guide -------------------------------------------------
+	b = strings.Builder{}
+	fmt.Fprintf(&b, "# %s — Administrator Guide\n\n", doc.Title)
+	fmt.Fprintf(&b, "*Generated %s. A map of the network — store it as carefully as a spare key.*\n\n",
+		doc.GeneratedAt.Format("2006-01-02 15:04 MST"))
 	b.WriteString("## Contents\n\n")
-	b.WriteString("1. [Emergency contacts & accounts](contacts.md)\n")
+	b.WriteString("1. [Network map & IP plan](network.md)\n")
 	b.WriteString("2. [Physical layer](physical.md)\n")
-	b.WriteString("3. [Network map & IP plan](network.md)\n")
-	b.WriteString("4. [Service catalog](services.md)\n")
-	b.WriteString("5. [Backup & restore](backups.md)\n")
-	b.WriteString("6. [Appendix: inventory & change log](appendix/inventory.md)\n")
-	put("README.md", &b)
+	b.WriteString("3. [Service catalog](services.md)\n")
+	b.WriteString("4. [Backup & restore](backups.md)\n")
+	b.WriteString("5. [Contacts & accounts](contacts.md)\n")
+	b.WriteString("6. [Appendix: inventory & change log](appendix/inventory.md)\n\n")
+	b.WriteString("The companion [Household Guide](../household-guide.md) is the plain-language version given to the people who live here. If they called you, that's what they're holding.\n")
+	put("administrator-guide/README.md", &b)
 
 	b = strings.Builder{}
-	b.WriteString("# Emergency contacts & accounts\n\n")
+	b.WriteString("# Contacts & accounts\n\n")
 	if doc.ContactsMD != "" {
 		b.WriteString(doc.ContactsMD + "\n\n")
 	} else {
@@ -58,7 +136,7 @@ func RenderMarkdown(doc *Document) map[string][]byte {
 			writeEntryMD(&b, e, 3)
 		}
 	}
-	put("contacts.md", &b)
+	put("administrator-guide/contacts.md", &b)
 
 	b = strings.Builder{}
 	b.WriteString("# Physical layer\n\nWhere the equipment lives. Most home-network problems end with power-cycling something on this list.\n\n")
@@ -80,7 +158,7 @@ func RenderMarkdown(doc *Document) map[string][]byte {
 			writeEntryMD(&b, e, 3)
 		}
 	}
-	put("physical.md", &b)
+	put("administrator-guide/physical.md", &b)
 
 	b = strings.Builder{}
 	b.WriteString("# Network map & IP plan\n\n")
@@ -112,14 +190,14 @@ func RenderMarkdown(doc *Document) map[string][]byte {
 		}
 		b.WriteString("\n")
 	}
-	put("network.md", &b)
+	put("administrator-guide/network.md", &b)
 
 	b = strings.Builder{}
 	b.WriteString("# Service catalog\n\nEverything that runs. Missing purposes and recovery steps are flagged — those gaps are the difference between an inventory and a runbook.\n\n")
 	for _, e := range doc.Services {
 		writeEntryMD(&b, e, 2)
 	}
-	put("services.md", &b)
+	put("administrator-guide/services.md", &b)
 
 	b = strings.Builder{}
 	b.WriteString("# Backup & restore\n\n")
@@ -156,7 +234,7 @@ func RenderMarkdown(doc *Document) map[string][]byte {
 		}
 		b.WriteString("\n")
 	}
-	put("backups.md", &b)
+	put("administrator-guide/backups.md", &b)
 
 	b = strings.Builder{}
 	b.WriteString("# Appendix: full inventory\n\n")
@@ -183,7 +261,7 @@ func RenderMarkdown(doc *Document) map[string][]byte {
 			r.ID, r.Collector, r.StartedAt, r.Status,
 			r.Summary.Seen, r.Summary.Added, r.Summary.Changed, r.Summary.Removed)
 	}
-	put("appendix/inventory.md", &b)
+	put("administrator-guide/appendix/inventory.md", &b)
 
 	// One file per annotated resource — the unit git diffs care about.
 	for _, g := range doc.Inventory {
@@ -221,7 +299,7 @@ func RenderMarkdown(doc *Document) map[string][]byte {
 				attrs, _ := json.MarshalIndent(e.Attrs, "", "  ")
 				b.WriteString("## Attributes\n\n```json\n" + string(attrs) + "\n```\n")
 			}
-			put("appendix/resources/"+resourceFile(e), &b)
+			put("administrator-guide/appendix/resources/"+resourceFile(e), &b)
 		}
 	}
 

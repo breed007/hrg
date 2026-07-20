@@ -90,7 +90,7 @@ func (s *Server) runbookConfig(settings map[string]string) runbookConfig {
 		c.ExportDir = "exports"
 	}
 	if c.Title == "" {
-		c.Title = "Homelab Runbook"
+		c.Title = "Our Home's Technology"
 	}
 	if c.PaperSize == "" {
 		c.PaperSize = "letter"
@@ -100,6 +100,23 @@ func (s *Server) runbookConfig(settings map[string]string) runbookConfig {
 	}
 	return c
 }
+
+// overviewSkeleton pre-fills the "what is all this?" page — the first thing
+// a household reader needs, and the one thing no collector can know.
+const overviewSkeleton = `Write this for someone who has never touched any of it.
+A few plain sentences, no jargon. For example:
+
+There is a small computer in the basement closet that stores all our photos and
+lets the TVs play movies. There's also the internet box from the provider, and a
+box that keeps things running for about 20 minutes if the power goes out.
+
+Most of it looks after itself. If something stops working, see the next section.
+
+TODO: describe what's actually here, in your own words:
+- What does the household actually use day to day? (internet, TV, photos, cameras?)
+- Which of it matters, and which is just a hobby project that can be ignored?
+- Is anything paid for monthly, and on whose card?
+`
 
 // startHereSkeleton pre-fills the editor so the author starts from a
 // decision tree, not a blank page.
@@ -161,15 +178,29 @@ func (s *Server) handleRunbook(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, err)
 		return
 	}
-	latest, err := s.store.LatestOKExport(ctx, "html")
+	overview, err := s.store.GetPage(ctx, "overview")
 	if err != nil {
 		s.fail(w, err)
 		return
 	}
-	latestPDF, err := s.store.LatestOKExport(ctx, "pdf")
-	if err != nil {
-		s.fail(w, err)
-		return
+
+	// Per-guide export availability drives the download links.
+	type guideView struct {
+		Key, Title string
+		HTML, PDF  *store.Export
+	}
+	var guides []guideView
+	for _, g := range runbook.Guides {
+		gv := guideView{Key: string(g), Title: g.Title()}
+		if gv.HTML, err = s.store.LatestOKExport(ctx, string(g)+"-html"); err != nil {
+			s.fail(w, err)
+			return
+		}
+		if gv.PDF, err = s.store.LatestOKExport(ctx, string(g)+"-pdf"); err != nil {
+			s.fail(w, err)
+			return
+		}
+		guides = append(guides, gv)
 	}
 
 	edit := r.URL.Query().Get("edit")
@@ -186,14 +217,16 @@ func (s *Server) handleRunbook(w http.ResponseWriter, r *http.Request) {
 
 	s.render(w, "runbook", "layout", map[string]any{
 		"Title":     "Runbook",
+		"Overview":  pageView(overview, overviewSkeleton),
 		"StartHere": pageView(startHere, startHereSkeleton),
 		"Contacts":  pageView(contacts, contactsSkeleton),
 		"Cfg":       cfg,
 		"HasChrome": s.chrome != "",
 		"Themes":    ThemeNames,
+		"Guides":    guides,
 		"Schedule":  s.scheduler.Spec(), "NextRun": s.scheduler.Next(),
-		"Exports": exports, "Latest": latest, "LatestPDF": latestPDF,
-		"Err": r.URL.Query().Get("err"),
+		"Exports": exports,
+		"Err":     r.URL.Query().Get("err"),
 	})
 }
 
@@ -276,12 +309,16 @@ func (s *Server) handleRunbookPreview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	cfg := s.runbookConfig(settings)
+	guide := runbook.Guide(r.PathValue("guide"))
+	if !guide.Valid() {
+		guide = runbook.GuideHousehold
+	}
 	doc, err := runbook.Build(r.Context(), s.store, cfg.Title)
 	if err != nil {
 		s.fail(w, err)
 		return
 	}
-	out, err := runbook.RenderHTML(doc, cfg.renderOptions())
+	out, err := runbook.RenderHTML(doc, guide, cfg.renderOptions())
 	if err != nil {
 		s.fail(w, err)
 		return
@@ -324,31 +361,32 @@ func (s *Server) generateRunbook(ctx context.Context, cfg runbookConfig) {
 		return
 	}
 
-	// HTML artifact. 0600 everywhere: an export is a map of the network.
-	htmlPath := filepath.Join(cfg.ExportDir, "runbook.html")
-	htmlOut, err := runbook.RenderHTML(doc, cfg.renderOptions())
-	if err != nil {
-		record("html", htmlPath, "error", err.Error())
-	} else if err := os.WriteFile(htmlPath, htmlOut, 0o600); err != nil {
-		record("html", htmlPath, "error", err.Error())
-	} else {
-		record("html", htmlPath, "ok", fmt.Sprintf("%d KiB", len(htmlOut)/1024))
-	}
+	// Both guides, every run, from the same Document — so the household copy
+	// and the technical copy can never disagree about the same house.
+	// 0600 everywhere: an export is a map of the network.
+	for _, guide := range runbook.Guides {
+		htmlPath := filepath.Join(cfg.ExportDir, guide.Slug()+".html")
+		htmlOut, err := runbook.RenderHTML(doc, guide, cfg.renderOptions())
+		if err != nil {
+			record(string(guide)+"-html", htmlPath, "error", err.Error())
+			continue
+		}
+		if err := os.WriteFile(htmlPath, htmlOut, 0o600); err != nil {
+			record(string(guide)+"-html", htmlPath, "error", err.Error())
+			continue
+		}
+		record(string(guide)+"-html", htmlPath, "ok", fmt.Sprintf("%d KiB", len(htmlOut)/1024))
 
-	// PDF, rendered from the same HTML via headless Chrome (optional).
-	if cfg.PDF {
-		pdfPath := filepath.Join(cfg.ExportDir, "runbook.pdf")
-		switch {
-		case htmlOut == nil:
-			record("pdf", pdfPath, "error", "HTML render failed; skipped PDF")
-		default:
+		// PDF, printed from the same HTML via headless Chrome (optional).
+		if cfg.PDF {
+			pdfPath := filepath.Join(cfg.ExportDir, guide.Slug()+".pdf")
 			pdf, err := runbook.RenderPDF(ctx, s.chrome, htmlOut)
 			if err != nil {
-				record("pdf", pdfPath, "error", err.Error())
+				record(string(guide)+"-pdf", pdfPath, "error", err.Error())
 			} else if err := os.WriteFile(pdfPath, pdf, 0o600); err != nil {
-				record("pdf", pdfPath, "error", err.Error())
+				record(string(guide)+"-pdf", pdfPath, "error", err.Error())
 			} else {
-				record("pdf", pdfPath, "ok", fmt.Sprintf("%d KiB", len(pdf)/1024))
+				record(string(guide)+"-pdf", pdfPath, "ok", fmt.Sprintf("%d KiB", len(pdf)/1024))
 			}
 		}
 	}
@@ -372,9 +410,14 @@ func (s *Server) generateRunbook(ctx context.Context, cfg runbookConfig) {
 	}
 }
 
-// handleRunbookDownload serves the most recently exported artifact of the
-// requested format ("html" or "pdf").
+// handleRunbookDownload serves the most recent export of one guide in one
+// format, e.g. /runbook/download/household/pdf.
 func (s *Server) handleRunbookDownload(w http.ResponseWriter, r *http.Request) {
+	guide := runbook.Guide(r.PathValue("guide"))
+	if !guide.Valid() {
+		http.Error(w, "unknown guide", http.StatusBadRequest)
+		return
+	}
 	format := r.PathValue("format")
 	contentType := "text/html; charset=utf-8"
 	if format == "pdf" {
@@ -382,17 +425,18 @@ func (s *Server) handleRunbookDownload(w http.ResponseWriter, r *http.Request) {
 	} else {
 		format = "html"
 	}
-	latest, err := s.store.LatestOKExport(r.Context(), format)
+
+	latest, err := s.store.LatestOKExport(r.Context(), string(guide)+"-"+format)
 	if err != nil {
 		s.fail(w, err)
 		return
 	}
 	if latest == nil {
-		http.Error(w, "no "+format+" export yet — generate the runbook first", http.StatusNotFound)
+		http.Error(w, "no "+format+" export of the "+guide.Title()+" yet — generate the runbook first", http.StatusNotFound)
 		return
 	}
 	w.Header().Set("Content-Type", contentType)
-	w.Header().Set("Content-Disposition", `attachment; filename="runbook.`+format+`"`)
+	w.Header().Set("Content-Disposition", `attachment; filename="`+guide.Slug()+"."+format+`"`)
 	http.ServeFile(w, r, latest.Path)
 }
 

@@ -1,0 +1,155 @@
+{{define "guide"}}
+{{template "doc-head" .}}
+
+<h1>{{.Doc.Title}}</h1>
+<p class="edition">Administrator Guide</p>
+<p class="subtitle">The operational document: what runs where, how it's wired, how to recover it.
+Written for whoever does the work — the person the household calls, or future-you.
+This is a map of the network: <strong>store it as carefully as a spare key.</strong></p>
+{{template "age-banner" .}}
+
+<nav class="toc">
+<strong>Contents</strong>
+<ol>
+  <li><a href="#topology">Topology</a></li>
+  <li><a href="#network">Network &amp; IP plan</a></li>
+  <li><a href="#physical">Physical layer</a></li>
+  <li><a href="#services">Service catalog</a></li>
+  <li><a href="#backups">Backup &amp; restore</a></li>
+  <li><a href="#accounts">Contacts &amp; accounts</a></li>
+  <li><a href="#appendix">Appendix — inventory &amp; change log</a></li>
+</ol>
+<p class="toc-note">The companion <strong>Household Guide</strong> is the plain-language version
+given to the people who live here. If they called you, that's what they're holding.</p>
+</nav>
+
+<section id="topology">
+<h2>1 · Topology</h2>
+{{if .Doc.MermaidSrc}}
+<pre class="mermaid">{{.Doc.MermaidSrc}}</pre>
+<p class="dim">Solid lines: physical attachment · dashed: membership/location. (Rendered in a browser;
+the tables below carry the same facts.)</p>
+{{else}}
+<p class="dim">No topology could be drawn — no network-layer resources have been collected.</p>
+{{end}}
+</section>
+
+<section id="network">
+<h2>2 · Network &amp; IP plan</h2>
+{{if .Doc.Prefixes}}
+<h3>Subnets</h3>
+<table>
+  <thead><tr><th>Prefix</th><th>Documented as</th><th>Observed by</th><th>Status</th></tr></thead>
+  <tbody>
+  {{range .Doc.Prefixes}}
+    <tr>
+      <td><code>{{.CIDR}}</code></td>
+      <td>{{if .Documented}}{{.Documented.Name}}{{if .Detail}} <span class="dim">({{.Detail}})</span>{{end}}{{else}}—{{end}}</td>
+      <td>{{range $i, $o := .Observed}}{{if $i}}, {{end}}{{$o.Name}}{{else}}—{{end}}</td>
+      <td>{{if eq .Status "ok"}}<span class="badge-ok">ok</span>{{else}}<span class="badge-warn">{{.Status}}</span>{{end}}</td>
+    </tr>
+  {{end}}
+  </tbody>
+</table>
+{{end}}
+{{if .Doc.IPs}}
+<h3>Known addresses</h3>
+<table>
+  <thead><tr><th>IP</th><th>Name / documented as</th><th>Observed by</th><th>Status</th></tr></thead>
+  <tbody>
+  {{range .Doc.IPs}}
+    <tr>
+      <td><code>{{.IP}}</code></td>
+      <td>{{if .DNS}}<code>{{.DNS}}</code>{{end}}{{if .Documented}} {{.Documented.Name}}{{end}}</td>
+      <td>{{range $i, $o := .Observed}}{{if $i}}, {{end}}{{$o.Name}}{{else}}—{{end}}</td>
+      <td>{{if eq .Status "ok"}}<span class="badge-ok">ok</span>{{else}}<span class="badge-warn">{{.Status}}</span>{{end}}</td>
+    </tr>
+  {{end}}
+  </tbody>
+</table>
+{{end}}
+{{if not (or .Doc.Prefixes .Doc.IPs)}}<p class="dim">No IP-plan data collected.</p>{{end}}
+</section>
+
+<section id="physical">
+<h2>3 · Physical layer</h2>
+{{template "physical-body" .}}
+</section>
+
+<section id="services">
+<h2>4 · Service catalog</h2>
+<p class="dim">Everything that runs. Entries missing a purpose or recovery procedure are flagged —
+those gaps are the difference between an inventory and a runbook.</p>
+{{range .Doc.Services}}{{template "entry" .}}{{end}}
+</section>
+
+<section id="backups">
+<h2>5 · Backup &amp; restore</h2>
+{{if .Doc.BackupJobs}}
+{{range .Doc.BackupJobs}}
+<div class="entry">
+  <div class="entry-head"><h4>{{.Name}}</h4><span class="kind">{{.Kind}}</span><span class="identity">{{.Collector}} / {{.SourceID}}</span></div>
+  {{if .Attrs.schedule}}<p>Schedule: <code>{{.Attrs.schedule}}</code>{{if .Attrs.storage}} → <code>{{.Attrs.storage}}</code>{{end}}</p>{{end}}
+  {{if .Covers}}<p>Covers: {{range $i, $c := .Covers}}{{if $i}}, {{end}}{{$c}}{{end}}</p>{{end}}
+  <p>Restore last verified: {{if .VerifiedAt}}<strong>{{.VerifiedAt}}</strong>{{else}}<span class="badge-warn">never — an untested backup is a hope, not a backup</span>{{end}}</p>
+  {{if .RecoveryMD}}<div class="field-label">Restore procedure</div><div class="md">{{markdown .RecoveryMD}}</div>
+  {{else}}<p class="badge-warn">No restore procedure written.</p>{{end}}
+</div>
+{{end}}
+{{else}}
+<div class="warn">No backup jobs are known. Either none exist (fix that first) or no collector reports them yet.</div>
+{{end}}
+{{if .Doc.Uncovered}}
+<h3>Not covered by any known backup job</h3>
+<ul>{{range .Doc.Uncovered}}<li>{{.Name}} <span class="kind">{{.Kind}}</span></li>{{end}}</ul>
+{{end}}
+</section>
+
+<section id="accounts">
+<h2>6 · Contacts &amp; accounts</h2>
+{{template "contacts-body" .}}
+</section>
+
+<section id="appendix">
+<h2>7 · Appendix</h2>
+<p class="dim">Coverage at generation time: {{.Doc.Coverage.WithPurpose}}/{{.Doc.Coverage.Annotatable}} resources
+have a documented purpose; {{.Doc.Coverage.WithRecovery}}/{{.Doc.Coverage.CriticalTotal}} things-that-can-be-down
+have recovery steps.</p>
+
+<h3>Full inventory</h3>
+{{range .Doc.Inventory}}
+<h4>{{.Kind}} ({{len .Entries}})</h4>
+<table>
+  <thead><tr><th>Name</th><th>Identity</th><th>Attributes</th></tr></thead>
+  <tbody>
+  {{range .Entries}}
+    <tr>
+      <td>{{.Name}}{{if .Orphaned}} <span class="badge-warn">orphaned</span>{{end}}</td>
+      <td><code>{{.Collector}} / {{.SourceID}}</code></td>
+      <td><code>{{json .Attrs}}</code></td>
+    </tr>
+  {{end}}
+  </tbody>
+</table>
+{{end}}
+
+<h3>Recent collection runs</h3>
+<table>
+  <thead><tr><th>#</th><th>Collector</th><th>When</th><th>Status</th><th>Seen</th><th>Added</th><th>Changed</th><th>Removed</th></tr></thead>
+  <tbody>
+  {{range .Doc.Runs}}
+    <tr><td>{{.ID}}</td><td>{{.Collector}}</td><td>{{.StartedAt}}</td><td>{{.Status}}</td>
+        <td>{{.Summary.Seen}}</td><td>{{.Summary.Added}}</td><td>{{.Summary.Changed}}</td><td>{{.Summary.Removed}}</td></tr>
+  {{end}}
+  </tbody>
+</table>
+</section>
+
+<script>{{.MermaidJS}}</script>
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ startOnLoad: true, securityLevel: 'strict', theme: 'neutral' });
+  }
+</script>
+{{template "doc-footer" .}}
+{{end}}

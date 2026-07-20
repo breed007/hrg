@@ -68,3 +68,18 @@ footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line);
   section:first-of-type { page-break-before: avoid; }
   a { color: inherit; text-decoration: none; }
 }
+
+/* --- two-guide additions --- */
+.edition {
+  font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--accent); margin: -.1rem 0 .9rem;
+}
+.agebar {
+  border: 1px solid var(--line); border-left: 4px solid var(--accent);
+  background: #f7f7f3; padding: .6rem .9rem; margin: 1rem 0;
+  font-size: .85rem; font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+.toc-note { font-size: .85rem; color: var(--dim); margin: .6rem 0 0; }
+.lead { font-size: 1.08rem; }
+footer p { margin: .3rem 0; }
