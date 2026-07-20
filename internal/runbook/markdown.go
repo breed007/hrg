@@ -93,13 +93,27 @@ func RenderMarkdown(doc *Document) map[string][]byte {
 		b.WriteString("\n")
 	}
 
-	b.WriteString("## 5. What each thing does\n\n")
+	b.WriteString("## 5. What each thing does\n\nListed with the things the house actually needs first.\n\n")
 	for _, e := range doc.Services {
-		fmt.Fprintf(&b, "### %s\n\n", mdCell(e.Name))
-		if e.PurposeMD != "" {
+		fmt.Fprintf(&b, "### %s", mdCell(e.Name))
+		if l := e.ImportanceLabel(); l != "" {
+			fmt.Fprintf(&b, " — *%s*", l)
+		}
+		b.WriteString("\n\n")
+		switch {
+		case e.PlainEnglishMD != "":
+			b.WriteString(e.PlainEnglishMD + "\n\n")
+		case e.PurposeMD != "":
 			b.WriteString(e.PurposeMD + "\n\n")
-		} else {
-			b.WriteString("> ⚠ Nobody has written down what this is for.\n\n")
+			b.WriteString("> ⚠ That's the technical description — it hasn't been rewritten in plain language yet.\n\n")
+		default:
+			b.WriteString("> ⚠ Nobody has written down what this is.\n\n")
+		}
+		if e.MonthlyCostMD != "" {
+			fmt.Fprintf(&b, "**Cost:** %s\n\n", e.MonthlyCostMD)
+		}
+		if e.SafeToOffMD != "" {
+			fmt.Fprintf(&b, "**If you turn it off:** %s\n\n", e.SafeToOffMD)
 		}
 	}
 

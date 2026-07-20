@@ -54,6 +54,25 @@ var migrations = []string{
 		verified_at TEXT NOT NULL,
 		note        TEXT NOT NULL DEFAULT ''
 	);`,
+	// v5: household-facing annotation fields. These live alongside the
+	// administrator fields in the same table so they inherit everything
+	// annotations already get — identity keying that survives re-collection,
+	// orphan reattach, and config backup/restore. SQLite can't alter a CHECK
+	// constraint in place, so the table is rebuilt.
+	`CREATE TABLE annotations_v5 (
+		id          INTEGER PRIMARY KEY,
+		resource_id INTEGER NOT NULL REFERENCES resources(id),
+		field       TEXT NOT NULL CHECK (field IN (
+		              'purpose', 'recovery', 'credential_pointer', 'note',
+		              'plain_english', 'household_importance', 'safe_to_off', 'monthly_cost')),
+		body_md     TEXT NOT NULL,
+		updated_at  TEXT NOT NULL,
+		UNIQUE (resource_id, field)
+	);
+	INSERT INTO annotations_v5 (id, resource_id, field, body_md, updated_at)
+	  SELECT id, resource_id, field, body_md, updated_at FROM annotations;
+	DROP TABLE annotations;
+	ALTER TABLE annotations_v5 RENAME TO annotations;`,
 }
 
 // Store wraps the SQLite database. Safe for concurrent use; SQLite-level

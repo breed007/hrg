@@ -8,9 +8,55 @@ import (
 	"github.com/breed007/hrg/internal/model"
 )
 
-// AnnotationFields are the typed annotation slots, in display order.
-// They mirror the CHECK constraint in the schema.
-var AnnotationFields = []string{"purpose", "recovery", "credential_pointer", "note"}
+// Annotation fields come in two sets, one per reader. They share a table so
+// they inherit identity keying, orphan reattach, and config backup — but
+// they are deliberately separate fields: the sentence that explains a NAS to
+// a partner is not the sentence that explains it to an administrator, and
+// collapsing them would force one text to serve both.
+var (
+	// HouseholdFields are written for the people who live here.
+	HouseholdFields = []string{"plain_english", "household_importance", "safe_to_off", "monthly_cost"}
+	// AdminFields are written for whoever does the technical work.
+	AdminFields = []string{"purpose", "recovery", "credential_pointer", "note"}
+)
+
+// AnnotationFields are all valid slots, mirroring the schema CHECK.
+var AnnotationFields = append(append([]string{}, HouseholdFields...), AdminFields...)
+
+// Importance is how much the household would miss a thing — the survivor's
+// triage key, and something no collector can infer.
+const (
+	ImportanceEssential    = "essential"
+	ImportanceNice         = "nice"
+	ImportanceExperimental = "experimental"
+)
+
+// ImportanceValues lists the vocabulary in descending order of "keep this".
+var ImportanceValues = []string{ImportanceEssential, ImportanceNice, ImportanceExperimental}
+
+// ImportanceRank orders resources for the household guide: the things the
+// house actually needs come first. Unclassified sorts last — it's a gap.
+func ImportanceRank(v string) int {
+	switch v {
+	case ImportanceEssential:
+		return 0
+	case ImportanceNice:
+		return 1
+	case ImportanceExperimental:
+		return 2
+	default:
+		return 3
+	}
+}
+
+func ValidImportance(v string) bool {
+	for _, x := range ImportanceValues {
+		if v == x {
+			return true
+		}
+	}
+	return false
+}
 
 func validAnnotationField(f string) bool {
 	for _, v := range AnnotationFields {
@@ -53,6 +99,11 @@ func (s *Store) GetAnnotations(ctx context.Context, resourceID int64) (map[strin
 func (s *Store) SetAnnotation(ctx context.Context, resourceID int64, field, body string) error {
 	if !validAnnotationField(field) {
 		return fmt.Errorf("unknown annotation field %q", field)
+	}
+	// Importance is a classification, not prose — keep the vocabulary tight
+	// so it can be counted and sorted on.
+	if field == "household_importance" && body != "" && !ValidImportance(body) {
+		return fmt.Errorf("household importance must be one of %v, got %q", ImportanceValues, body)
 	}
 	if body == "" {
 		_, err := s.db.ExecContext(ctx,
@@ -268,17 +319,30 @@ var RecoveryKinds = []model.Kind{
 	model.KindHost, model.KindDevice, model.KindVM, model.KindLXC, model.KindContainer, model.KindService,
 }
 
-// Coverage measures how much of the inventory is actually documented —
-// the numbers the dashboard uses to nag.
+// Coverage measures how much of the inventory is actually documented, in
+// two dimensions — because a resource can be perfectly documented for an
+// administrator and still be meaningless to the person who lives here.
 type Coverage struct {
-	Annotatable        int // live (non-orphaned) resources
+	Annotatable int // live (non-orphaned) resources
+
+	// Administrator readiness.
 	WithPurpose        int
 	CriticalTotal      int // live resources of RecoveryKinds
 	WithRecovery       int
 	CredentialPointers int
 	BackupJobs         int // live backup-job resources
 	BackupJobsVerified int // …with a recorded restore test
+
+	// Household readiness.
+	Classified         int // live resources with an importance set
+	Essential          int // …marked essential
+	EssentialExplained int // …essential AND described in plain English
+	Described          int // live resources with a plain-English description
 }
+
+// Unclassified counts resources nobody has marked essential or not — a
+// survivor can't tell what matters from what's a hobby project.
+func (c Coverage) Unclassified() int { return c.Annotatable - c.Classified }
 
 func (s *Store) Coverage(ctx context.Context) (*Coverage, error) {
 	var c Coverage
@@ -313,6 +377,24 @@ func (s *Store) Coverage(ctx context.Context) (*Coverage, error) {
 		       COALESCE(SUM(EXISTS(SELECT 1 FROM backup_checks b WHERE b.resource_id = r.id)), 0)
 		FROM resources r WHERE r.kind = 'backup_job' AND `+live).
 		Scan(&c.BackupJobs, &c.BackupJobsVerified)
+	if err != nil {
+		return nil, err
+	}
+
+	// Household dimension: is this house legible to someone who didn't
+	// build it? "Essential things explained in plain English" is the number
+	// that actually predicts whether the Household Guide is usable.
+	err = s.db.QueryRowContext(ctx, `
+		SELECT
+		  COALESCE(SUM(imp.body_md IS NOT NULL), 0),
+		  COALESCE(SUM(imp.body_md = 'essential'), 0),
+		  COALESCE(SUM(imp.body_md = 'essential' AND pe.body_md IS NOT NULL), 0),
+		  COALESCE(SUM(pe.body_md IS NOT NULL), 0)
+		FROM resources r
+		LEFT JOIN annotations imp ON imp.resource_id = r.id AND imp.field = 'household_importance'
+		LEFT JOIN annotations pe  ON pe.resource_id  = r.id AND pe.field  = 'plain_english'
+		WHERE `+live).
+		Scan(&c.Classified, &c.Essential, &c.EssentialExplained, &c.Described)
 	if err != nil {
 		return nil, err
 	}

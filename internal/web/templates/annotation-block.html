@@ -12,18 +12,29 @@
   <form method="post" action="/resources/{{.ResourceID}}/annotations/{{.Key}}"
         hx-post="/resources/{{.ResourceID}}/annotations/{{.Key}}"
         hx-target="#ann-{{.Key}}" hx-swap="outerHTML" class="ann-form">
+    {{if .Choices}}
+    <select name="body" autofocus>
+      {{$cur := .Body}}
+      {{range .Choices}}<option value="{{.Value}}" {{if eq .Value $cur}}selected{{end}}>{{.Label}}</option>{{end}}
+    </select>
+    {{else}}
     <textarea name="body" rows="7" placeholder="{{.Help}}" autofocus>{{.Body}}</textarea>
+    {{end}}
     <div class="form-actions">
       <button type="submit">Save</button>
       <a href="/resources/{{.ResourceID}}#ann-{{.Key}}"
          hx-get="/resources/{{.ResourceID}}" hx-target="#ann-{{.Key}}"
          hx-select="#ann-{{.Key}}" hx-swap="outerHTML">Cancel</a>
-      <span class="dim">Markdown supported. Saving an empty box removes the note.</span>
+      {{if not .Choices}}<span class="dim">Markdown supported. Saving an empty box removes the note.</span>{{end}}
     </div>
   </form>
   {{else if .Body}}
-  <div class="md">{{markdown .Body}}</div>
-  <div class="dim ann-updated">updated {{.UpdatedAt}}</div>
+    {{if .Choices}}
+    <p><span class="imp-pill imp-{{.Body}}">{{.SelectedLabel}}</span></p>
+    {{else}}
+    <div class="md">{{markdown .Body}}</div>
+    {{end}}
+    <div class="dim ann-updated">updated {{.UpdatedAt}}</div>
   {{else}}
   <p class="ann-empty">{{.Help}}</p>
   {{end}}

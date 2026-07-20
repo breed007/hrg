@@ -10,18 +10,43 @@ import (
 	"github.com/breed007/hrg/internal/store"
 )
 
-// annField describes one typed annotation slot for the UI.
+// annField describes one typed annotation slot for the UI. Choices, when
+// present, render a dropdown instead of a textarea — a classification is
+// not prose.
 type annField struct {
-	Key   string
-	Label string
-	Help  string
+	Key     string
+	Label   string
+	Help    string
+	Choices []annChoice
 }
 
-var annotationFields = []annField{
-	{"purpose", "Purpose", "What is this, and what breaks without it?"},
-	{"recovery", "Recovery procedure", "Step-by-step: how to restart or restore it. Markdown checklists (- [ ] step) render as checkboxes."},
-	{"credential_pointer", "Credential pointer", "Where credentials live — vault name and item. Never the credentials themselves."},
-	{"note", "Notes", "Anything else future-you, or a stressed non-expert, needs to know."},
+type annChoice struct{ Value, Label string }
+
+// householdFields are written for the people who live here; adminFields for
+// whoever does the technical work. They are edited in separate groups so the
+// author knows which reader they're writing for.
+var householdFields = []annField{
+	{Key: "plain_english", Label: "What is this, in plain English?",
+		Help: "For someone who has never touched it. \"Stores our photos and lets the TVs play movies\" — not \"ZFS pool exported over NFS.\""},
+	{Key: "household_importance", Label: "Does the household need it?",
+		Help: "The triage key for someone deciding what to keep alive and what can go.",
+		Choices: []annChoice{
+			{"", "— not classified —"},
+			{store.ImportanceEssential, "Essential — the house needs this"},
+			{store.ImportanceNice, "Nice to have"},
+			{store.ImportanceExperimental, "Just a project — not needed"},
+		}},
+	{Key: "safe_to_off", Label: "If it gets turned off",
+		Help: "What stops working, in plain language. Leave blank and HRG will infer what it can from dependencies."},
+	{Key: "monthly_cost", Label: "Cost & who pays",
+		Help: "Monthly or yearly cost and which card/account it's on — so a survivor can find and stop it."},
+}
+
+var adminFields = []annField{
+	{Key: "purpose", Label: "Purpose", Help: "What is this, and what breaks without it?"},
+	{Key: "recovery", Label: "Recovery procedure", Help: "Step-by-step: how to restart or restore it. Markdown checklists (- [ ] step) render as checkboxes."},
+	{Key: "credential_pointer", Label: "Credential pointer", Help: "Where credentials live — vault name and item. Never the credentials themselves."},
+	{Key: "note", Label: "Notes", Help: "Anything else future-you needs to know."},
 }
 
 // annBlock is the render state of one annotation slot.
@@ -33,9 +58,19 @@ type annBlock struct {
 	Editing   bool
 }
 
-func buildAnnBlocks(resourceID int64, anns map[string]store.Annotation, editField string) []annBlock {
-	out := make([]annBlock, 0, len(annotationFields))
-	for _, f := range annotationFields {
+// SelectedLabel renders the human label for a chosen value (choice fields).
+func (b annBlock) SelectedLabel() string {
+	for _, c := range b.Choices {
+		if c.Value == b.Body && c.Value != "" {
+			return c.Label
+		}
+	}
+	return ""
+}
+
+func blocksFor(fields []annField, resourceID int64, anns map[string]store.Annotation, editField string) []annBlock {
+	out := make([]annBlock, 0, len(fields))
+	for _, f := range fields {
 		b := annBlock{ResourceID: resourceID, annField: f, Editing: f.Key == editField}
 		if a, ok := anns[f.Key]; ok {
 			b.Body = a.BodyMD
@@ -44,6 +79,12 @@ func buildAnnBlocks(resourceID int64, anns map[string]store.Annotation, editFiel
 		out = append(out, b)
 	}
 	return out
+}
+
+// buildAnnBlocks returns the two reader-scoped groups.
+func buildAnnBlocks(resourceID int64, anns map[string]store.Annotation, editField string) (household, admin []annBlock) {
+	return blocksFor(householdFields, resourceID, anns, editField),
+		blocksFor(adminFields, resourceID, anns, editField)
 }
 
 func (s *Server) handleAnnotationSave(w http.ResponseWriter, r *http.Request) {
@@ -65,7 +106,8 @@ func (s *Server) handleAnnotationSave(w http.ResponseWriter, r *http.Request) {
 			s.fail(w, err)
 			return
 		}
-		for _, b := range buildAnnBlocks(id, anns, "") {
+		hh, ad := buildAnnBlocks(id, anns, "")
+		for _, b := range append(hh, ad...) {
 			if b.Key == field {
 				s.render(w, "resource", "annotation-block", b)
 				return

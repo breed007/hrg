@@ -11,9 +11,16 @@
   <dt>Last seen</dt><dd>run #{{.Resource.LastSeenRun}}</dd>
 </dl>
 
-<h2>Notes &amp; procedures</h2>
+<h2>For the household</h2>
+<p class="dim">Written for the people who live here — a partner, family member, or whoever inherits this. Plain language, no jargon. These feed the <strong>Household Guide</strong>.</p>
 <div class="ann-grid">
-{{range .AnnBlocks}}{{template "annotation-block" .}}{{end}}
+{{range .HouseholdBlocks}}{{template "annotation-block" .}}{{end}}
+</div>
+
+<h2>For the administrator</h2>
+<p class="dim">Written for whoever does the technical work. These feed the <strong>Administrator Guide</strong>.</p>
+<div class="ann-grid">
+{{range .AdminBlocks}}{{template "annotation-block" .}}{{end}}
 </div>
 
 {{if .IsBackupJob}}

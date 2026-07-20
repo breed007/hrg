@@ -2,6 +2,8 @@ package store
 
 import (
 	"context"
+	"database/sql"
+	"path/filepath"
 	"testing"
 
 	"github.com/breed007/hrg/internal/collector"
@@ -218,5 +220,64 @@ func TestFailedRunDoesNotOrphan(t *testing.T) {
 	}
 	if len(runs) != 2 || runs[0].Status != "error" {
 		t.Errorf("failed run not recorded: %+v", runs)
+	}
+}
+
+// TestMigrateV4toV5 pins the riskiest part of adding the household fields:
+// SQLite cannot widen a CHECK constraint in place, so v5 rebuilds the
+// annotations table. Existing notes must come through untouched.
+func TestMigrateV4toV5(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "v4.db")
+
+	// Stand up a database at exactly schema v4.
+	db, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	db.SetMaxOpenConns(1)
+	for v := 0; v < 4; v++ {
+		if _, err := db.Exec(migrations[v]); err != nil {
+			t.Fatalf("apply v%d: %v", v+1, err)
+		}
+	}
+	if _, err := db.Exec(`PRAGMA user_version = 4`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec(`
+		INSERT INTO runs (id, collector, started_at, finished_at, status)
+		  VALUES (1, 'test', 't', 't', 'ok');
+		INSERT INTO resources (id, collector, source_id, kind, first_seen_run, last_seen_run)
+		  VALUES (1, 'test', 'plex', 'service', 1, 1);
+		INSERT INTO resource_versions (resource_id, valid_from_run, name, attrs, content_hash)
+		  VALUES (1, 1, 'Plex', '{}', 'h');
+		INSERT INTO annotations (resource_id, field, body_md, updated_at)
+		  VALUES (1, 'purpose', 'media server', '2026-01-01T00:00:00Z');`); err != nil {
+		t.Fatalf("seed v4 data: %v", err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	// Reopen: migrate() should carry the row across the table rebuild.
+	s, err := Open(path)
+	if err != nil {
+		t.Fatalf("migrate to v5: %v", err)
+	}
+	defer s.Close()
+
+	ctx := context.Background()
+	anns, err := s.GetAnnotations(ctx, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := anns["purpose"].BodyMD; got != "media server" {
+		t.Errorf("pre-existing annotation lost in v5 rebuild: %q", got)
+	}
+	if anns["purpose"].UpdatedAt != "2026-01-01T00:00:00Z" {
+		t.Errorf("updated_at not preserved: %q", anns["purpose"].UpdatedAt)
+	}
+	// And the widened CHECK now admits the household fields.
+	if err := s.SetAnnotation(ctx, 1, "plain_english", "Plays movies."); err != nil {
+		t.Errorf("household field rejected after migration: %v", err)
 	}
 }

@@ -69,6 +69,7 @@ func NewServer(st *store.Store, key *secrets.Key, static []collector.Collector, 
 	// not rendered — markdown in, markup out, nothing else.
 	md := goldmark.New(goldmark.WithExtensions(extension.GFM))
 	funcs := template.FuncMap{
+		"sub": func(a, b int) int { return a - b },
 		"json": func(v any) string {
 			b, err := json.Marshal(v)
 			if err != nil {
@@ -347,6 +348,11 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, err)
 		return
 	}
+	overview, err := s.store.GetPage(r.Context(), "overview")
+	if err != nil {
+		s.fail(w, err)
+		return
+	}
 	startHere, err := s.store.GetPage(r.Context(), "start_here")
 	if err != nil {
 		s.fail(w, err)
@@ -368,6 +374,9 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 		"PurposePct":       pct(cov.WithPurpose, cov.Annotatable),
 		"RecoveryPct":      pct(cov.WithRecovery, cov.CriticalTotal),
 		"BackupPct":        pct(cov.BackupJobsVerified, cov.BackupJobs),
+		"ClassifiedPct":    pct(cov.Classified, cov.Annotatable),
+		"EssentialPct":     pct(cov.EssentialExplained, cov.Essential),
+		"OverviewWritten":  overview.BodyMD != "",
 		"StartHereWritten": startHere.BodyMD != "",
 		"LastExport":       lastExport,
 		"Health":           health,
@@ -449,10 +458,11 @@ func (s *Server) handleResource(w http.ResponseWriter, r *http.Request) {
 		backupVerified = checks[id]
 	}
 
+	householdBlocks, adminBlocks := buildAnnBlocks(id, anns, r.URL.Query().Get("edit"))
 	s.render(w, "resource", "layout", map[string]any{
 		"Title": detail.Name, "Resource": detail,
-		"AnnBlocks": buildAnnBlocks(id, anns, r.URL.Query().Get("edit")),
-		"Targets":   targets, "Relations": model.Relations,
+		"HouseholdBlocks": householdBlocks, "AdminBlocks": adminBlocks,
+		"Targets": targets, "Relations": model.Relations,
 		"IsBackupJob": detail.Kind == model.KindBackupJob, "BackupVerified": backupVerified,
 	})
 }

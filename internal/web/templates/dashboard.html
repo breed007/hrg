@@ -27,7 +27,36 @@
   </div>
 </div>
 
-<h2>Runbook coverage</h2>
+<h2>Household Guide readiness</h2>
+<p class="dim">Could someone who didn't build this house run it tomorrow?</p>
+<div class="cov">
+  <div class="cov-row">
+    <div class="cov-label">Sorted into essential / nice / just a project</div>
+    <div class="bar"><div class="bar-fill {{if lt .ClassifiedPct 50}}bar-low{{end}}" style="width: {{.ClassifiedPct}}%"></div></div>
+    <div class="cov-nums">{{.Coverage.Classified}}/{{.Coverage.Annotatable}}</div>
+    {{if .Coverage.Unclassified}}<a href="/resources?missing=household_importance">show unsorted</a>{{end}}
+  </div>
+  {{if .Coverage.Essential}}
+  <div class="cov-row">
+    <div class="cov-label">Essential things explained in plain English</div>
+    <div class="bar"><div class="bar-fill {{if lt .EssentialPct 50}}bar-low{{end}}" style="width: {{.EssentialPct}}%"></div></div>
+    <div class="cov-nums">{{.Coverage.EssentialExplained}}/{{.Coverage.Essential}}</div>
+    {{if lt .Coverage.EssentialExplained .Coverage.Essential}}<a href="/resources?missing=plain_english">show missing</a>{{end}}
+  </div>
+  {{end}}
+  {{if lt .Coverage.EssentialExplained .Coverage.Essential}}
+  {{$m := sub .Coverage.Essential .Coverage.EssentialExplained}}
+  <p><span class="badge badge-warn">{{$m}} of your {{.Coverage.Essential}} essential system{{if ne .Coverage.Essential 1}}s{{end}} {{if eq $m 1}}has{{else}}have{{end}} no plain-English description</span> — the Household Guide will fall back to the technical wording, which is exactly what it exists to avoid.</p>
+  {{end}}
+  {{if not .OverviewWritten}}
+  <p><span class="badge badge-warn">"What is all this?" unwritten</span> — the guide opens with an empty page. <a href="/runbook">Write it</a>.</p>
+  {{end}}
+  {{if not .StartHereWritten}}
+  <p><span class="badge badge-warn">"If something is broken" unwritten</span> — the triage page is empty. <a href="/runbook">Write it</a>; it is the most important page in the document.</p>
+  {{end}}
+</div>
+
+<h2>Administrator Guide readiness</h2>
 <div class="cov">
   <div class="cov-row">
     <div class="cov-label">Purpose documented</div>
@@ -50,9 +79,6 @@
   </div>
   {{end}}
   <p class="dim">{{.Coverage.CredentialPointers}} credential pointer{{if ne .Coverage.CredentialPointers 1}}s{{end}} recorded. The runbook is only as good as what's written down — a stressed reader needs the <em>why</em> and the <em>how</em>, not just the inventory.</p>
-  {{if not .StartHereWritten}}
-  <p><span class="badge badge-warn">START HERE unwritten</span> — the runbook's triage page is empty. <a href="/runbook">Write it</a>; it is the most important page in the document.</p>
-  {{end}}
   <p class="dim">{{if .LastExport}}Last export: {{.LastExport.CreatedAt}} → <code>{{.LastExport.Path}}</code>{{else}}Never exported — <a href="/runbook">generate the runbook</a> so a copy exists outside this app.{{end}}</p>
 </div>
 

@@ -59,13 +59,20 @@ something is beeping — in plain steps, naming where to go and what to press.</
 <section id="things">
 <h2>5 · What each thing does</h2>
 {{if .Doc.Services}}
-<p class="dim">The systems running in this home, and what stops working if each one stops.</p>
+<p class="dim">Listed with the things the house actually needs first.</p>
 {{range .Doc.Services}}
 <div class="entry">
-  <div class="entry-head"><h4>{{.Name}}</h4></div>
-  {{if .PurposeMD}}<div class="md">{{markdown .PurposeMD}}</div>
-  {{else}}<p class="badge-warn">Nobody has written down what this is for.</p>{{end}}
-  {{if .NoteMD}}<div class="md">{{markdown .NoteMD}}</div>{{end}}
+  <div class="entry-head">
+    <h4>{{.Name}}</h4>
+    {{if .ImportanceLabel}}<span class="imp imp-{{.Importance}}">{{.ImportanceLabel}}</span>{{end}}
+  </div>
+  {{if .PlainEnglishMD}}<div class="md">{{markdown .PlainEnglishMD}}</div>
+  {{else if .PurposeMD}}
+    <div class="md tech-fallback">{{markdown .PurposeMD}}</div>
+    <p class="badge-warn">This is the technical description — it hasn't been rewritten in plain language yet.</p>
+  {{else}}<p class="badge-warn">Nobody has written down what this is.</p>{{end}}
+  {{if .MonthlyCostMD}}<div class="field-label">Cost</div><div class="md">{{markdown .MonthlyCostMD}}</div>{{end}}
+  {{if .SafeToOffMD}}<div class="field-label">If you turn it off</div><div class="md">{{markdown .SafeToOffMD}}</div>{{end}}
 </div>
 {{end}}
 {{else}}

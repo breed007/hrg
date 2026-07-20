@@ -283,3 +283,72 @@ func TestBackupChecks(t *testing.T) {
 		t.Errorf("re-check should upsert, got %d rows", len(checks))
 	}
 }
+
+// TestHouseholdCoverage checks the second dimension: not "is it documented"
+// but "would it mean anything to someone who didn't build it".
+func TestHouseholdCoverage(t *testing.T) {
+	s := newTestStore(t)
+	ctx := context.Background()
+	ids := seedResources(t, s, "plex", "nas", "grafana")
+
+	must := func(id int64, field, body string) {
+		t.Helper()
+		if err := s.SetAnnotation(ctx, id, field, body); err != nil {
+			t.Fatal(err)
+		}
+	}
+	must(ids["plex"], "household_importance", ImportanceEssential)
+	must(ids["plex"], "plain_english", "Plays movies on the TVs.")
+	must(ids["nas"], "household_importance", ImportanceEssential) // essential, unexplained
+	must(ids["grafana"], "household_importance", ImportanceExperimental)
+	must(ids["grafana"], "plain_english", "Graphs. Nobody needs them.")
+
+	cov, err := s.Coverage(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cov.Classified != 3 || cov.Unclassified() != 0 {
+		t.Errorf("classification wrong: %+v", cov)
+	}
+	if cov.Essential != 2 || cov.EssentialExplained != 1 {
+		t.Errorf("essential counts wrong: got %d essential, %d explained", cov.Essential, cov.EssentialExplained)
+	}
+	if cov.Described != 2 {
+		t.Errorf("described wrong: %d", cov.Described)
+	}
+
+	missing, err := s.ListResources(ctx, ListFilter{Missing: "plain_english"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(missing) != 1 || missing[0].SourceID != "nas" {
+		t.Errorf("missing=plain_english filter wrong: %+v", missing)
+	}
+}
+
+// TestImportanceVocabulary: the classification is a controlled vocabulary,
+// not prose — free text here would silently break sorting and coverage.
+func TestImportanceVocabulary(t *testing.T) {
+	s := newTestStore(t)
+	ctx := context.Background()
+	id := seedResources(t, s, "plex")["plex"]
+
+	for _, v := range ImportanceValues {
+		if err := s.SetAnnotation(ctx, id, "household_importance", v); err != nil {
+			t.Errorf("rejected valid importance %q: %v", v, err)
+		}
+	}
+	if err := s.SetAnnotation(ctx, id, "household_importance", "sort of important"); err == nil {
+		t.Error("accepted free-text importance")
+	}
+	// Clearing is always allowed — it means "not classified".
+	if err := s.SetAnnotation(ctx, id, "household_importance", ""); err != nil {
+		t.Errorf("clearing importance failed: %v", err)
+	}
+	if ImportanceRank(ImportanceEssential) >= ImportanceRank(ImportanceNice) {
+		t.Error("essential must sort before nice-to-have")
+	}
+	if ImportanceRank("") <= ImportanceRank(ImportanceExperimental) {
+		t.Error("unclassified must sort last")
+	}
+}

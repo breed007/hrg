@@ -115,17 +115,42 @@ type Entry struct {
 	Orphaned  bool
 	Attrs     map[string]any
 
+	// Administrator-facing knowledge.
 	PurposeMD  string
 	RecoveryMD string
 	CredMD     string
 	NoteMD     string
+
+	// Household-facing knowledge — deliberately separate fields, because
+	// the sentence that explains this to a partner is not the sentence
+	// that explains it to an administrator.
+	PlainEnglishMD string
+	Importance     string // essential | nice | experimental | "" (unclassified)
+	SafeToOffMD    string
+	MonthlyCostMD  string
 
 	Edges []EdgeLine
 }
 
 // HasAnnotations reports whether any human knowledge is attached.
 func (e Entry) HasAnnotations() bool {
-	return e.PurposeMD != "" || e.RecoveryMD != "" || e.CredMD != "" || e.NoteMD != ""
+	return e.PurposeMD != "" || e.RecoveryMD != "" || e.CredMD != "" || e.NoteMD != "" ||
+		e.PlainEnglishMD != "" || e.Importance != "" || e.SafeToOffMD != "" || e.MonthlyCostMD != ""
+}
+
+// ImportanceLabel renders the household classification for a reader who has
+// never seen the word "importance" in a form.
+func (e Entry) ImportanceLabel() string {
+	switch e.Importance {
+	case store.ImportanceEssential:
+		return "The house needs this"
+	case store.ImportanceNice:
+		return "Nice to have"
+	case store.ImportanceExperimental:
+		return "Just a project — not needed"
+	default:
+		return ""
+	}
 }
 
 // EdgeLine is one relationship, phrased from the entry's point of view.
@@ -247,6 +272,10 @@ func Build(ctx context.Context, st *store.Store, title string) (*Document, error
 			en.RecoveryMD = a["recovery"].BodyMD
 			en.CredMD = a["credential_pointer"].BodyMD
 			en.NoteMD = a["note"].BodyMD
+			en.PlainEnglishMD = a["plain_english"].BodyMD
+			en.Importance = a["household_importance"].BodyMD
+			en.SafeToOffMD = a["safe_to_off"].BodyMD
+			en.MonthlyCostMD = a["monthly_cost"].BodyMD
 		}
 		return en
 	}
@@ -306,6 +335,17 @@ func Build(ctx context.Context, st *store.Store, title string) (*Document, error
 			doc.Uncovered = append(doc.Uncovered, entry(r))
 		}
 	}
+
+	// Order services by how much the household would miss them. A reader
+	// triaging an outage should meet "the house needs this" before
+	// somebody's k3s experiment; unclassified sorts last, as a visible gap.
+	sort.SliceStable(doc.Services, func(i, j int) bool {
+		ri, rj := store.ImportanceRank(doc.Services[i].Importance), store.ImportanceRank(doc.Services[j].Importance)
+		if ri != rj {
+			return ri < rj
+		}
+		return doc.Services[i].Name < doc.Services[j].Name
+	})
 
 	// Appendix: everything, grouped by kind, orphans included and flagged.
 	groups := map[model.Kind][]Entry{}

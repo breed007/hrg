@@ -83,3 +83,14 @@ footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line);
 .toc-note { font-size: .85rem; color: var(--dim); margin: .6rem 0 0; }
 .lead { font-size: 1.08rem; }
 footer p { margin: .3rem 0; }
+
+/* --- household importance --- */
+.imp {
+  font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: .72rem; font-weight: 700; padding: .1rem .5rem; border-radius: 999px;
+  white-space: nowrap;
+}
+.imp-essential    { background: #dcefe3; color: #1c4d38; border: 1px solid #22503b; }
+.imp-nice         { background: #eef1f6; color: #3d5a80; border: 1px solid #9db8dc; }
+.imp-experimental { background: #f2f2ee; color: #6a6a62; border: 1px solid #d8d8d2; }
+.tech-fallback { color: #555; }
